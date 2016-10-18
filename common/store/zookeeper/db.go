@@ -29,7 +29,8 @@ func (db *zkDB) Login() error {
 	var err error
 	db.Con, _, err = zk.Connect([]string{db.Cfg}, time.Second*60)
 	if err != nil {
-		panic(err)
+		return err
+//		panic(err)
 	}
 	return nil
 }

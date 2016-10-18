@@ -115,7 +115,7 @@ func (db *etcdDB) IsKey(Key string) (bool, error) {
 		if strings.Contains(err.Error(), "Key not found") != true {
 			return false, err
 		}
-		return false, nil
+		return false,err 
 	}
 	return true, nil
 }
