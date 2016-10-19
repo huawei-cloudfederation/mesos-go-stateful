@@ -13,7 +13,7 @@ func init() {
 		ExposeHeaders:    []string{"Content-Length", "Access-Control-Allow-Origin", "Content-Type"},
 		AllowCredentials: true,
 	}))
-	 beego.BConfig.CopyRequestBody = true
+	beego.BConfig.CopyRequestBody = true
 	beego.Router("/v1/CREATE/:INSTANCENAME", &MainController{}, "post:CreateInstance")
 	beego.Router("/v1/DELETE/:INSTANCENAME", &MainController{}, "delete:DeleteInstance")
 	beego.Router("/v1/STATUS/:INSTANCENAME", &MainController{}, "get:StatusOfInstance")

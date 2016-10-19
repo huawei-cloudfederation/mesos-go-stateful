@@ -42,8 +42,8 @@ func (db *etcdDB) Login() error {
 // Setup will create/establish connection with the etcd store and also setup
 // the nessary environment if etcd is running for the first time
 // framework will look for the following location in the central store
-// //Instances/...... -> Will have the entries of all the instances
-// //Config/....		-> Will have the entries of all the config information
+// /framework/instances...... -> Will have the entries of all the instances
+// /framework/Config/....		-> Will have the entries of all the config information
 func (db *etcdDB) Setup(config string) error {
 	var err error
 	db.Cfg = cli.Config{
@@ -115,7 +115,7 @@ func (db *etcdDB) IsKey(Key string) (bool, error) {
 		if strings.Contains(err.Error(), "Key not found") != true {
 			return false, err
 		}
-		return false,err 
+		return false, err
 	}
 	return true, nil
 }

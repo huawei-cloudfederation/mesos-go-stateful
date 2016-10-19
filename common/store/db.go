@@ -1,9 +1,9 @@
 package store
 
-//DB Interface that every DB pkg must comply for framework 
+//DB Interface that every DB pkg must comply for framework
 type DB interface {
 
-	//Perform the initial setup of the database/KV store by creating DB/Namespace etc that are important for running MrRedis
+	//Perform the initial setup of the database/KV store by creating DB/Namespace etc that are important for running workload
 	Setup(config string) error
 
 	//Check if the database is setup already or not for  Framework
@@ -29,7 +29,7 @@ type DB interface {
 
 	//Section
 	//Section is a DIR in etcd
-	//Section will be a namespace in framework 
+	//Section will be a namespace in framework
 	//Section will be a Table in RDBMS
 	//Create Section
 	CreateSection(Key string) error
@@ -40,6 +40,6 @@ type DB interface {
 	//List the complete secton if recursive then list the entirer directory tree, only the key not the value
 	ListSection(Key string, Recursive bool) ([]string, error)
 
-	//Completly wipe out the DB/KV store about all the information pertaining to framework 
+	//Completly wipe out the DB/KV store about all the information pertaining to framework
 	CleanSlate() error
 }

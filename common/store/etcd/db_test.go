@@ -71,7 +71,7 @@ func TestLogWithoutEndPoint(T *testing.T) {
 func TestSetUpWithConfig(T *testing.T) {
 	var db etcdDB
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, `{"action":"set","node":{"key":"/test","value":"Hello","modifiedIndex":4,"createdIndex":4}}`)
+		fmt.Fprintln(w, `{"action":"set","node":{"dir": true,"key":"/test","value":"Hello","modifiedIndex":4,"createdIndex":4}}`)
 	}))
 	defer ts.Close()
 
@@ -106,7 +106,6 @@ func TestSetUpWithoutConfig(T *testing.T) {
 
 }
 
-
 func TestIsSetup(T *testing.T) {
 
 	var db etcdDB
@@ -118,7 +117,7 @@ func TestIsSetup(T *testing.T) {
 	}
 }
 
-func TestCreateSection(T *testing.T) {
+func TestCreateSectionWithKey(T *testing.T) {
 
 	var db etcdDB
 
@@ -148,7 +147,7 @@ func TestCreateSection(T *testing.T) {
 	}
 }
 
-func TestCreateSectionError(T *testing.T) {
+func TestCreateSectionWithoutKey(T *testing.T) {
 
 	var db etcdDB
 
@@ -171,9 +170,7 @@ func TestCreateSectionError(T *testing.T) {
 	db.Kapi = cli.NewKeysAPI(db.C)
 	db.Ctx = context.Background()
 
-	err := db.CreateSection("/testDir")
-
-	fmt.Println(err)
+	err := db.CreateSection("")
 
 	if err != nil && !strings.Contains(err.Error(), "response is invalid json. The endpoint is probably not valid etcd cluster endpoint") {
 		//If its some other error then fail
@@ -181,7 +178,7 @@ func TestCreateSectionError(T *testing.T) {
 	}
 }
 
-func TestSet(T *testing.T) {
+func TestSetWithKey(T *testing.T) {
 
 	var db etcdDB
 
@@ -205,14 +202,14 @@ func TestSet(T *testing.T) {
 	db.Ctx = context.Background()
 
 	err := db.Set("/testDir", "Hello")
-	
-	if err != nil{
+
+	if err != nil {
 		T.Fail()
 	}
 
 }
 
-func TestSetError(T *testing.T) {
+func TestSetWithoutKey(T *testing.T) {
 
 	var db etcdDB
 
@@ -235,7 +232,7 @@ func TestSetError(T *testing.T) {
 	db.Kapi = cli.NewKeysAPI(db.C)
 	db.Ctx = context.Background()
 
-	err := db.Set("/testDir", "Hello")
+	err := db.Set("", "Hello")
 
 	fmt.Println(err)
 	if err != nil && !strings.Contains(err.Error(), "response is invalid json. The endpoint is probably not valid etcd cluster endpoint") {
@@ -267,12 +264,11 @@ func TestGetValidConfig(T *testing.T) {
 	db.Kapi = cli.NewKeysAPI(db.C)
 	db.Ctx = context.Background()
 
-	resp, err := db.Get("/testDir")
+	db.Get("/testDir")
 
-	fmt.Println(resp, err)
 }
 
-func TestGetError(T *testing.T) {
+func TestGetWithoutKey(T *testing.T) {
 
 	var db etcdDB
 
@@ -295,7 +291,7 @@ func TestGetError(T *testing.T) {
 	db.Kapi = cli.NewKeysAPI(db.C)
 	db.Ctx = context.Background()
 
-	resp, err := db.Get("/testDir")
+	resp, err := db.Get("")
 
 	if resp != "" && !strings.Contains(err.Error(), "response is invalid json. The endpoint is probably not valid etcd cluster endpoint") {
 		//If its some other error then fail
@@ -330,7 +326,7 @@ func TestIsDir(T *testing.T) {
 
 }
 
-func TestIsDirErro(T *testing.T) {
+func TestIsDirWithoutKey(T *testing.T) {
 
 	var db etcdDB
 
@@ -353,7 +349,7 @@ func TestIsDirErro(T *testing.T) {
 	db.Kapi = cli.NewKeysAPI(db.C)
 	db.Ctx = context.Background()
 
-	err, resp := db.IsDir("/testDir")
+	err, resp := db.IsDir("")
 
 	if resp != false && !strings.Contains(err.Error(), "response is invalid json. The endpoint is probably not valid etcd cluster endpoint") {
 		//If its some other error then fail
@@ -385,12 +381,11 @@ func TestIsKey(T *testing.T) {
 	db.Kapi = cli.NewKeysAPI(db.C)
 	db.Ctx = context.Background()
 
-	 db.IsKey("/testDir")
-
+	db.IsKey("/testDir")
 
 }
 
-func TestIsKeyError(T *testing.T) {
+func TestIsKeyWithoutKey(T *testing.T) {
 
 	var db etcdDB
 
@@ -413,7 +408,7 @@ func TestIsKeyError(T *testing.T) {
 	db.Kapi = cli.NewKeysAPI(db.C)
 	db.Ctx = context.Background()
 
-	resp, err := db.IsKey("/testDir")
+	resp, err := db.IsKey("")
 
 	if resp != false && !strings.Contains(err.Error(), "response is invalid json. The endpoint is probably not valid etcd cluster endpoint") {
 		//If its some other error then fail
@@ -451,7 +446,7 @@ func TestUpdate(T *testing.T) {
 
 }
 
-func TestUpdateError(T *testing.T) {
+func TestUpdateWithoutKey(T *testing.T) {
 	var db etcdDB
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintln(w, "A-ok")
@@ -472,7 +467,7 @@ func TestUpdateError(T *testing.T) {
 	db.Kapi = cli.NewKeysAPI(db.C)
 	db.Ctx = context.Background()
 
-	err := db.Update("/testDir", "Hello", true)
+	err := db.Update("", "Hello", true)
 
 	if err != nil && !strings.Contains(err.Error(), "response is invalid json. The endpoint is probably not valid etcd cluster endpoint") {
 		//If its some other error then fail
@@ -480,7 +475,7 @@ func TestUpdateError(T *testing.T) {
 	}
 }
 
-func TestDeleteSectionError(T *testing.T) {
+func TestDeleteSectionWithoutKey(T *testing.T) {
 
 	var db etcdDB
 
@@ -503,9 +498,7 @@ func TestDeleteSectionError(T *testing.T) {
 	db.Kapi = cli.NewKeysAPI(db.C)
 	db.Ctx = context.Background()
 
-	err := db.DeleteSection("/testDir")
-
-	fmt.Println(err)
+	err := db.DeleteSection("")
 
 	if err != nil && !strings.Contains(err.Error(), "response is invalid json. The endpoint is probably not valid etcd cluster endpoint") {
 		//If its some other error then fail
@@ -540,7 +533,7 @@ func TestDel(T *testing.T) {
 
 }
 
-func TestDelError(T *testing.T) {
+func TestDelWithoutKey(T *testing.T) {
 
 	var db etcdDB
 
@@ -563,8 +556,7 @@ func TestDelError(T *testing.T) {
 	db.Kapi = cli.NewKeysAPI(db.C)
 	db.Ctx = context.Background()
 
-	err := db.Del("/testDir")
-
+	err := db.Del("")
 
 	if err != nil && !strings.Contains(err.Error(), "response is invalid json. The endpoint is probably not valid etcd cluster endpoint") {
 		//If its some other error then fail
@@ -599,7 +591,7 @@ func TestListSection(T *testing.T) {
 
 }
 
-func TestListSectionError(T *testing.T) {
+func TestListSectionWithoutKey(T *testing.T) {
 
 	var db etcdDB
 
@@ -622,7 +614,7 @@ func TestListSectionError(T *testing.T) {
 	db.Kapi = cli.NewKeysAPI(db.C)
 	db.Ctx = context.Background()
 
-	_, err := db.ListSection("/testDir", true)
+	_, err := db.ListSection("", true)
 
 	if err != nil && !strings.Contains(err.Error(), "response is invalid json. The endpoint is probably not valid etcd cluster endpoint") {
 		//If its some other error then fail
@@ -630,7 +622,7 @@ func TestListSectionError(T *testing.T) {
 	}
 }
 
-func TestCleanSlateError(T *testing.T) {
+func TestCleanSlateWithoutBaseDir(T *testing.T) {
 
 	var db etcdDB
 
@@ -653,7 +645,7 @@ func TestCleanSlateError(T *testing.T) {
 	db.Kapi = cli.NewKeysAPI(db.C)
 	db.Ctx = context.Background()
 
-	db.BaseDir = "/testDir"
+	db.BaseDir = ""
 
 	err := db.CleanSlate()
 

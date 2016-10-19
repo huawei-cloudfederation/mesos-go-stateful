@@ -3,10 +3,8 @@ package httplib
 import (
 	"encoding/json"
 	"fmt"
-	"log"
-//	"strconv"
-
 	"github.com/astaxie/beego"
+	"log"
 )
 
 //MainController of the HTTP server
@@ -23,7 +21,6 @@ func (this *MainController) CreateInstance() {
 
 	var data map[string]interface{}
 	name = this.Ctx.Input.Param(":INSTANCENAME")
-	
 
 	err := json.Unmarshal(this.Ctx.Input.RequestBody, &data)
 	if err != nil {
@@ -31,9 +28,8 @@ func (this *MainController) CreateInstance() {
 		return
 	}
 
-	log.Println(string(this.Ctx.Input.RequestBody), "::", name, data)
 	this.Ctx.ResponseWriter.WriteHeader(201)
-        this.Ctx.WriteString("Request Accepted, Instance will be created.")
+	this.Ctx.WriteString(fmt.Sprintf("Request Accepted, %s Instance will be created", name))
 
 }
 
@@ -42,12 +38,10 @@ func (this *MainController) DeleteInstance() {
 
 	var name string
 	//Parse the input URL
-	 name = this.Ctx.Input.Param(":INSTANCENAME") //Get the name of the instance
+	name = this.Ctx.Input.Param(":INSTANCENAME") //Get the name of the instance
 
-
-	//log.Println("Instance is %s\n",name)
 	this.Ctx.ResponseWriter.WriteHeader(200)
-        this.Ctx.WriteString(fmt.Sprintf("Request Placed for destroying %s instance",name))
+	this.Ctx.WriteString(fmt.Sprintf("Request Placed for destroying %s instance", name))
 
 }
 
@@ -55,35 +49,32 @@ func (this *MainController) DeleteInstance() {
 func (this *MainController) StatusOfInstance() {
 
 	//Parse the input URL
-	  //var name string
-        var name string
+	//var name string
+	var name string
 
-        //Parse the input URL
-        name = this.Ctx.Input.Param(":INSTANCENAME") //Get the name of the instance
+	//Parse the input URL
+	name = this.Ctx.Input.Param(":INSTANCENAME") //Get the name of the instance
 
-
-        this.Ctx.WriteString(fmt.Sprintf("jsoninfo is empty for the instance %s",name))
+	this.Ctx.WriteString(fmt.Sprintf("jsoninfo is empty for the instance %s", name))
 }
 
 //StatusAll handles StatusAll REST call
 func (this *MainController) ListAllInstances() {
 
-        this.Ctx.WriteString("jsoninfo is empty for all the instances")
+	this.Ctx.WriteString("jsoninfo is empty for all the instances")
 
 }
 
 //UpdateSlaves Not yet implemented
 func (this *MainController) AddSlaves() {
 
-	  //var name string
-        var name string
+	//var name string
+	var name string
 
-        //parse the input URL
-        name = this.Ctx.Input.Param(":INSTANCENAME") //Get the name of the instance
+	//parse the input URL
+	name = this.Ctx.Input.Param(":INSTANCENAME") //Get the name of the instance
 
-
-
-  	this.Ctx.WriteString(fmt.Sprintf("Adding the instance slaves for the instance %s",name))
+	this.Ctx.WriteString(fmt.Sprintf("Adding the instance slaves for the instance %s", name))
 
 }
 

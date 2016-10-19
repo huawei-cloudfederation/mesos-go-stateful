@@ -7,10 +7,10 @@ import (
 	"os"
 	"strings"
 
-	"golang.org/x/net/context"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
+	"golang.org/x/net/context"
 )
 
 //A Package wrapper for handling docker containers
@@ -55,7 +55,6 @@ func (d *Dcontainer) Run(name, image string, cmd []string, mem int64, logFileNam
 	for eoferr == nil {
 		line, eoferr = rImage.ReadBytes('\n')
 		if eoferr == nil {
-			//fmt.Printf("LIne read is %v", string(line))
 			prev_line = line
 		}
 	}
