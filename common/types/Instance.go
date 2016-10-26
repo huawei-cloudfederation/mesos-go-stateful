@@ -7,10 +7,10 @@ import (
 	"path/filepath"
 	"strconv"
 
-//	"../store/etcd"
+	"../store/etcd"
 )
 
-//A Instance structure that will be able to store a tree of data, Everything related to a redis intance
+//A Instance structure that will be able to store a tree of data, Everything related to a workload intance
 type Instance struct {
 	Name       string           //Name of the instance
 	Type       string           //Type of the instance "Single Instance = S; Master-Slave  = MS; Cluster = C"
@@ -22,7 +22,7 @@ type Instance struct {
 	Status     string           //Status of this instance "CREATING/RUNNING/DISABLED"
 	Mname      string           //Name / task id of the master redis proc
 	Snames     []string         //Name of the slave
-	Procs      map[string]*Proc //An array of redis procs to be filled later
+	Procs      map[string]*Proc //An array of workload procs to be filled later
 }
 
 // NewInstance Creates a new instance variable
@@ -43,8 +43,7 @@ func LoadInstance(Name string) *Instance {
 		return nil
 	}
 
-	nodeName := "/workload/instances" + "/" + Name
-	//nodeName := etcd.etcdDB.InstDir + "/" + Name
+	nodeName := etcd.etcdDB.InstDir + "/" + Name
 
 	if ok, _ := Gdb.IsKey(nodeName); !ok {
 		return nil
@@ -70,8 +69,7 @@ func (I *Instance) Load() bool {
 		return false
 	}
 
-	//nodeName := etcd.ETC_INST_DIR + "/" + I.Name + "/"
-	nodeName := "/workload/instances" + "/" + I.Name + "/"
+	nodeName := etcd.ETC_INST_DIR + "/" + I.Name + "/"
 	I.Type, err = Gdb.Get(nodeName + "Type")
 	tmpStr, err = Gdb.Get(nodeName + "Capacity")
 	I.Capacity, err = strconv.Atoi(tmpStr)
@@ -109,8 +107,7 @@ func (I *Instance) Sync() bool {
 		return false
 	}
 
-	//nodeName := etcd.ETC_INST_DIR + "/" + I.Name + "/"
-	nodeName := "/workload/instances" + "/" + I.Name + "/"
+	nodeName := etcd.ETC_INST_DIR + "/" + I.Name + "/"
 
 	Gdb.CreateSection(nodeName)
 	Gdb.Set(nodeName+"Type", I.Type)
@@ -146,8 +143,7 @@ func (I *Instance) SyncType(string) bool {
 		return false
 	}
 
-	//nodeName := etcd.ETC_INST_DIR + "/" + I.Name + "/"
-	nodeName := "/workload/instances" + "/" + I.Name + "/"
+	nodeName := etcd.ETC_INST_DIR + "/" + I.Name + "/"
 	Gdb.Set(nodeName+"Type", I.Type)
 	return true
 }
@@ -159,8 +155,7 @@ func (I *Instance) SyncStatus() bool {
 		return false
 	}
 
-	//nodeName := etcd.ETC_INST_DIR + "/" + I.Name + "/"
-	nodeName := "/workload/instances" + "/" + I.Name + "/"
+	nodeName := etcd.ETC_INST_DIR + "/" + I.Name + "/"
 	Gdb.Set(nodeName+"Status", I.Status)
 	return true
 }
@@ -172,8 +167,7 @@ func (I *Instance) SyncSlaves() bool {
 		return false
 	}
 
-	//nodeName := etcd.ETC_INST_DIR + "/" + I.Name + "/"
-	nodeName := "/workload/instances" + "/" + I.Name + "/"
+	nodeName := etcd.ETC_INST_DIR + "/" + I.Name + "/"
 	Gdb.Set(nodeName+"Slaves", fmt.Sprintf("%d", I.Slaves))
 	//Create Section for Slaves and Procs
 	nodeNameSlaves := nodeName + "Snames/"
@@ -192,8 +186,7 @@ func (I *Instance) SyncMasters() bool {
 		return false
 	}
 
-	//nodeName := etcd.ETC_INST_DIR + "/" + I.Name + "/"
-	nodeName := "/workload/instances" + "/" + I.Name + "/"
+	nodeName := etcd.ETC_INST_DIR + "/" + I.Name + "/"
 	Gdb.Set(nodeName+"Masters", fmt.Sprintf("%d", I.Masters))
 	Gdb.Set(nodeName+"Mname", I.Mname)
 	return true
@@ -227,13 +220,6 @@ type Instance_Json struct {
 	Slaves   []*ProcJson
 }
 
-/*
-
-type Proc_Json struct {
-	IP   string
-	Port string
-}
-*/
 
 //ToJson_Obj Filtered elementes of an Instnace that will be sent as an HTTP response
 func (I *Instance) ToJson_Obj() Instance_Json {

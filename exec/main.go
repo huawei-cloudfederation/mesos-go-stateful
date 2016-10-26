@@ -13,7 +13,7 @@ import (
 	mesos "github.com/mesos/mesos-go/mesosproto"
 
 	typ "../common/types"
-	"./exec/RedMon"
+	"./exec/TaskMon"
 )
 
 //DbType Flag for dbtype like etcd/zookeeper
@@ -22,12 +22,12 @@ var DbType = flag.String("DbType", "etcd", "Type of the database etcd/zookeeper 
 //DbEndPoint The actuall endpoint of the database.
 var DbEndPoint = flag.String("DbEndPoint", "", "Endpoint of the database")
 
-var Image = flag.String("Image", "", "Image of the worklaod Proc to be downloaded")
+var Image = flag.String("Image", "image-name", "Image of the worklaod Proc to be downloaded")
 
 //WorkloadLogger A global Logger pointer for the executor all the RedMon will write to the same logger
 var WorkloadLogger *log.Logger
 
-//MrRedisExecutor Basic strucutre for the executor
+//WorkloadExecutor Basic strucutre for the executor
 type WorkloadExecutor struct {
 	tasksLaunched int
 	HostIP        string
@@ -91,7 +91,7 @@ func (exec *WorkloadExecutor) LaunchTask(driver exec.ExecutorDriver, taskInfo *m
 	exec.tasksLaunched++
 	M := TaskMon.NewTaskMon(taskInfo.GetTaskId().GetValue(), exec.HostIP, exec.tasksLaunched+6379, string(taskInfo.Data), MrRedisLogger, *Image)
 
-	fmt.Printf("The Redmon object = %v\n", *M)
+	fmt.Printf("The Taskmon object = %v\n", *M)
 
 	tid := taskInfo.GetTaskId().GetValue()
 	exec.monMap[tid] = M
@@ -124,7 +124,7 @@ func (exec *WorkloadExecutor) LaunchTask(driver exec.ExecutorDriver, taskInfo *m
 
 		exitErr := M.Container.Wait() //TODO: Collect the return value of the process and send appropriate TaskUpdate eg:TaskFinished only on clean shutdown others will get TaskFailed
 		if exitErr != 0 || M.P.Msg != "SHUTDOWN" {
-			//If the redis-server proc finished either with a non-zero or its not suppose to die then mark it as Task filed
+			//If the workload-server proc finished either with a non-zero or its not suppose to die then mark it as Task filed
 			exitState = mesos.TaskState_TASK_FAILED.Enum()
 			//Signal the monitoring thread to stop monitoring from now on
 			M.MonChan <- 1
@@ -175,14 +175,14 @@ func init() {
 }
 
 func main() {
-	fmt.Println("Starting MrRedis Executor")
+	fmt.Println("Starting Workload Executor")
 
 	typ.Initialize(*DbType, *DbEndPoint)
 
 	var out io.Writer
 	out = ioutil.Discard
 
-	out, _ = os.Create("/tmp/MrRedisExecutor.log")
+	out, _ = os.Create("/tmp/WorkloadExecutor.log")
 	//ToDo does this need error handling
 	WorklaodLogger = log.New(out, "[Info]", log.Lshortfile)
 

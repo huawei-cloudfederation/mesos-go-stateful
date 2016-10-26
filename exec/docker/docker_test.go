@@ -1,6 +1,6 @@
 //To run this test please fullfill the following system requirements first
 //docker deamon should run in background
-//copy the hello-world image to local-machine
+//copy the sameersbn/postgresql image to local-machine
 
 package docker
 
@@ -22,7 +22,7 @@ func TestRun(T *testing.T) {
 	var dc Dcontainer
 
 	name := "test"
-	image := "hello-world"
+	image := "sameersbn/postgresql"
 	mem := int64(1)
 	cmd := []string{}
 	logfile := "testLog"
@@ -35,6 +35,7 @@ func TestRun(T *testing.T) {
 		//If its some other error then fail
 		T.Fail()
 	}
+	dc.GetStats()
 
 }
 
@@ -92,7 +93,7 @@ func TestRunCreateContainerError(T *testing.T) {
 	var dc Dcontainer
 
 	name := "test"
-	image := "hello-world"
+	image := "sameersbn/postgresql"
 	mem := int64(1)
 	cmd := []string{}
 	logfile := "testLog"
@@ -112,7 +113,7 @@ func TestRunStartContainerError(T *testing.T) {
 	var dc Dcontainer
 
 	name := "test"
-	image := "hello-world"
+	image := "sameersbn/postgresql"
 	mem := int64(1)
 	cmd := []string{"docker"}
 	logfile := "testLog"

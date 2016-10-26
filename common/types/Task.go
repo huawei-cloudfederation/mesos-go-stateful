@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-//	"../store/etcd"
+	"../store/etcd"
 )
 
 //Task A standalone task KV store is usually started in any slave (Linux) like below
@@ -15,7 +15,6 @@ import (
 //This stand alone server will be an actual unix process bound to a particular port witha PID
 //A workload Master Slave setup will have two such "server" processes running in either the same machine or two different machines
 //The below structure "Task" is a representation of such a running 'server' process started via this framework
-//This started/running "Proc" could be a Master/Standalone instance or could be a Slave of another "redis-server' running as a master
 type Proc struct {
 	Instance string //Name of the instance it belongs to
 	Nodename string //Node name at which this should start syncing its details to
@@ -28,20 +27,20 @@ type Proc struct {
 	SlaveOf  string //Slave of which redis master
 	Stats    string //All other statistics apart from Memory usage to be stored as a json/string
 	Msg      string //Message we will revive fromt he scheduler and action to be taken on it
-	IP       string //IP address of the slave at which this redis-server proc is running
+	IP       string //IP address of the slave at which this worklaod proc is running
 	Port     string //Port number at which this PROC is bound to
-	EID      string //Executor ID of this PROC  .. Just in case we need to send a framework messsage
-	SID      string //Slave ID of this PROC .. Just in case we need to send a framework message
+	EID      string //Executor ID of this PROC  .. Just in case we need to send a workload messsage
+	SID      string //Slave ID of this PROC .. Just in case we need to send a workload message
 	//cli    redis.Cli
 }
 
-//Stats the whole stats structure could be a json structure reflecting all the fields what redis info returns
+//Stats the whole stats structure could be a json structure reflecting all the fields what worklaod info returns
 //currently one field has many new line saperated values;ToDO will this work if returned in API?
 type Stats struct {
-        RxBytes        int64
-        CpuTotalUsage int
-        MemoryUsage      int64
-        BlockIOStats   []string 
+        NRxbytes        int64
+        CpuUsage int
+        Mem      int64
+        BlkIOstats   []string 
 }
 
 
@@ -61,7 +60,6 @@ type ProcJson struct {
 func NewProc(TskName string, Capacity int, Type string, SlaveOf string) *Proc {
 
 	var tmpProc Proc
-//	var db  etcd.etcdDB
 	Tids := strings.Split(TskName, "::")
 
 	if len(Tids) != 2 {
@@ -77,7 +75,7 @@ func NewProc(TskName string, Capacity int, Type string, SlaveOf string) *Proc {
 	tmpProc.Type = Type
 	tmpProc.SlaveOf = SlaveOf
 
-//	tmpProc.Nodename = db.InstDir + "/" + tmpProc.Instance + "/Procs/" + tmpProc.ID
+	tmpProc.Nodename = etcd.ETC_INST_DIR + "/" + tmpProc.Instance + "/Procs/" + tmpProc.ID
 	return &tmpProc
 }
 
@@ -96,7 +94,7 @@ func LoadProc(TskName string) *Proc {
 	P.Instance = Tids[0]
 	P.ID = Tids[1]
 
-//	P.Nodename = etcd.ETC_INST_DIR + "/" + P.Instance + "/Procs/" + P.ID
+	P.Nodename = etcd.ETC_INST_DIR + "/" + P.Instance + "/Procs/" + P.ID
 
 	P.Load()
 
@@ -175,7 +173,7 @@ func (P *Proc) Sync() bool {
 	return true
 }
 
-//SyncStats Updates only the statistic related information to the disk, used by RedMon every second
+//SyncStats Updates only the statistic related information to the disk, used by TaskMon every second
 func (P *Proc) SyncStats(s Stats) bool {
 	if Gdb.IsSetup() != true {
 		return false
@@ -290,10 +288,10 @@ func (P *Proc) ToJson() *ProcJson {
 		return nil
 	}
 
-	pJson.MemoryUsage = stats.MemoryUsage
-	pJson.CpuTotalUsage = stats.CpuTotalUsage
-	pJson.RxBytes = stats.RxBytes
-	pJson.BlockIOStats = stats.BlockIOStats
+	pJson.MemoryUsage = stats.Mem
+	pJson.CpuTotalUsage = stats.CpuUsage
+	pJson.RxBytes = stats.NRxbytes
+	pJson.BlockIOStats = stats.BlkIOstats
 
 	return &pJson
 

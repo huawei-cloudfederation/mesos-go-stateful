@@ -16,14 +16,6 @@ var (
 	Dchan     chan TaskMsg     //Channel for Destroyer
 )
 
-//Global db connection pointer, this will be initialized once abe be used everywhere
-
-//global Constants releated to ETCD
-const (
-	ETC_BASE_DIR = "/worklaod"
-	ETC_INST_DIR = ETC_BASE_DIR + "/Instances"
-	ETC_CONF_DIR = ETC_BASE_DIR + "/Config"
-)
 
 //Global constants for Instance Status
 //CREATING/ACTIVE/DELETED/DISABLED

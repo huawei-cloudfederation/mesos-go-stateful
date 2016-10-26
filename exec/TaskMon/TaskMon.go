@@ -4,10 +4,6 @@ import (
 	"fmt"
 	"io"
 	"log"
-//		"os"
-	"encoding/json"
-//	"io/ioutil"
-	"net/http"
 	"strconv"
 	"strings"
 	"time"
@@ -16,64 +12,6 @@ import (
 	"../docker"
 )
 
-//Stats structure is to populate docker stats
-type StatsInfo struct {
-	StatsTime    string  `json:"read"`
-	Network      statnet `json:"network"`
-	CStats       cstat   `json:"cpu_stats"`
-	MStats       mstat   `json:"memory_stats"`
-	BlockIOStats bstat   `json:"blockio_stats"`
-}
-
-type statnet struct {
-	RxBytes   int64 `json:"rx_bytes"`
-	RxPackets int64 `json:"rx_packets"`
-	RxErrors  int   `json:"rx_errors"`
-	RxDropped int   `json:"rx_dropped"`
-	TxBytes   int64 `json:"tx_bytes"`
-	TxPackets int64 `json:"tx_packets"`
-	TxErrors  int   `json:"tx_errors"`
-	TxDropped int   `json:"tx_dropped"`
-}
-
-type cstat struct {
-	CpuUsage       usage      `json:"cpu_usage"`
-	SCpuUsage      int64      `json:"system_cpu_usage"`
-	ThrottlingData throttling `json:"throttling_data"`
-}
-
-type usage struct {
-	TotalUsage        int    `json:"total_usage"`
-	PerCpuUsage       string `json:"percpu_usage"`
-	UsageInKernelMode int    `json:"usage_in_kernel_mode"`
-	UsageInUserMode   int    `json:"usage_in_user_mode"`
-}
-
-type throttling struct {
-	Periods          int `json:"periods"`
-	ThrottledPeriods int `json:"throttled_periods"`
-	ThrottledTime    int `json:"throttled_time"`
-}
-
-type mstat struct {
-	Usage    int64         `json:"usage"`
-	MaxUsage int64         `json:"max_usage"`
-	Stat st `json:"stats"`
-	FailCnt  int           `json:"failcnt"`
-	Limit    int           `json:"limit"`
-}
-
-type bstat struct {
-	IOServiceBytesRecursive []string `json:"io_service_bytes_recursive"`
-	IOServiceRecursive      []string `json:"io_serviced_recursive"`
-	IOQueueRecursive        []string `json:"io_queue_recursive"`
-	IOServiceTimeRecursive  []string `json:"io_service_time_recursive"`
-	IOWaitTimeRecursive     []string `json:"io_wait_time_recursive"`
-	IOMergeTimeRecursive    []string `json:"io_merged_recursive"`
-	IOTimeRecursive         []string `json:"io_time_recursive"`
-	SectorRecursive         []string `json:"sectors_recursive"`
-}
-type st struct{}
 
 //TaskMon This structure is used to implement a monitor thread/goroutine for a running task
 //This structure should be extended only if more functionality is required on the Monitoring functionality
@@ -85,7 +23,6 @@ type TaskMon struct {
 	Port      int       //The port number of this task instance to be started
 	Ofile     io.Writer //Stdout log file to be re-directed to this io.writer
 	Efile     io.Writer //stderr of the task instance should be re-directed to this file
-	MS_Sync   bool      //Make this as master after sync
 	MonChan   chan int
 	Container *docker.Dcontainer //A handle for the Container package
 	Image     string             //Name of the Image that should be pulled
@@ -136,26 +73,6 @@ func NewTaskMon(tskName string, IP string, Port int, data string, L *log.Logger,
 	return &T
 }
 
-func (T *TaskMon) getStats() (StatsInfo,error) {
-
-	var err error
-	var data StatsInfo
-
-	resp, err := http.Get("http://" + T.IP + fmt.Sprintf(":%d", T.Port) + "/containers/" + T.Container.ID + "/stats")
-	if err != nil {
-		log.Printf("docker container error\n", err)
-	}
-	defer resp.Body.Close()
-
-	body := io.Reader(resp.Body)
-
-	if err := json.NewDecoder(body).Decode(&data); err != nil {
-		log.Printf("I am here Json Unmarshall error = %v", err)
-	}
-	fmt.Println(data)
-
-	return data,nil
-}
 
 func (T *TaskMon) launchWorkload(isSlave bool, IP string, port string) bool {
 
@@ -164,7 +81,6 @@ func (T *TaskMon) launchWorkload(isSlave bool, IP string, port string) bool {
 		err = T.Container.Run(T.P.ID, T.Image, []string{"server", fmt.Sprintf("--port %d", T.Port), fmt.Sprintf("--Slaveof %s %s", IP, port)}, int64(T.P.MemCap), T.P.ID+".log")
 	} else {
 		err = T.Container.Run(T.P.ID, T.Image, []string{"server", fmt.Sprintf("--port %d", T.Port)}, int64(T.P.MemCap), T.P.ID+".log")
-//				err = T.Container.Run("test", T.Image, []string{}, int64(1), "test.log")
 	}
 
 	if err != nil {
@@ -175,12 +91,6 @@ func (T *TaskMon) launchWorkload(isSlave bool, IP string, port string) bool {
 	//hack otherwise its too quick to have the server receiving connections
 	time.Sleep(time.Second)
 
-	//get the connected client immediately after for monitoring and other functions
-//	_,err = T.getStats()
-//	if err != nil {
-		//Print some error
-//		return false
-//	}
 
 	return true
 }
@@ -188,18 +98,21 @@ func (T *TaskMon) launchWorkload(isSlave bool, IP string, port string) bool {
 //UpdateStats Update the stats structure and flush it to the Store/DB
 func (T *TaskMon) UpdateStats() bool {
 
-        var workloadStats typ.Stats
-        //var err error
+
+	var workloadStats typ.Stats
+
+	data,err  := T.Container.GetStats()
+
+	if err != nil {
+		log.Println("GetStats error",err)
+                return false
+	}
 
 
-	data,_  := T.getStatsInfo()
-
-	fmt.Println(data.CStats.CpuUsage.TotalUsage)
-
-        worklaodStats.RxBytes = data.Network.RxBytes
-        worklaodStats.CpuTotalUsage =  data.CStats.CpuUsage.TotalUsage
-        worklaodStats.MemoryUsage =  data.MStats.Usage 
-        worklaodStats.BlockIOStats =   data.BlockIOStats.IOServiceBytesRecursive
+        workloadStats.NRxbytes = data.Network.RxBytes
+        workloadStats.CpuUsage =  data.CStats.CpuUsage.TotalUsage
+        workloadStats.Mem =  data.MStats.Usage
+        workloadStats.BlkIOstats =   data.BlockIOStats.IOServiceBytesRecursive
 
         errSync := T.P.SyncStats(workloadStats)
         if !errSync {
@@ -218,12 +131,7 @@ func (T *TaskMon) Start() bool {
 		return T.StartMaster()
 	}
 
-	if !T.MS_Sync {
-		return T.StartSlave()
-	}
-	//Posibly a scale request so start it as a slave, sync then make as master
-	return T.StartSlaveAndMakeMaster()
-
+	return T.StartSlave()
 }
 
 //StartMaster Start the workload as a master
@@ -262,50 +170,12 @@ func (T *TaskMon) StartSlave() bool {
 		return ret
 	}
 
-	//Monitor the worklaod to check if the sync is complete
-	/*for !T.IsSyncComplete() {
-		time.Sleep(time.Second)
-	}*/
 	T.Pid = 0
 	T.P.Pid = 0
 	T.P.Port = fmt.Sprintf("%d", T.Port)
 	T.P.IP = T.IP
 	T.P.State = "Running"
 
-	T.P.Sync()
-
-	return true
-}
-
-//StartSlaveAndMakeMaster Start is as a slave and make it as a master, should be done for replication or adding a new slave
-func (T *TaskMon) StartSlaveAndMakeMaster() bool {
-	var ret = false
-	//Command Line
-	slaveof := strings.Split(T.P.SlaveOf, ":")
-	if len(slaveof) != 2 {
-		T.L.Printf("Unacceptable SlaveOf value %vn", T.P.SlaveOf)
-		return false
-	}
-
-	ret = T.launchWorkload(true, slaveof[0], slaveof[1])
-	if ret != true {
-		return ret
-	}
-
-	T.Pid = 0
-
-	//Monitor the workload to check if the sync is complete
-/*	for !T.IsSyncComplete() {
-		time.Sleep(time.Second)
-	}*/
-	//Make this workload as master
-	T.MakeMaster()
-
-	T.Pid = 0
-	T.P.Pid = 0
-	T.P.Port = fmt.Sprintf("%d", T.Port)
-	T.P.IP = T.IP
-	T.P.State = "Running"
 	T.P.Sync()
 
 	return true
@@ -336,7 +206,7 @@ func (T *TaskMon) Monitor() bool {
 				CheckMsgCh = time.After(time.Second)
 
 			case <-UpdateStatsCh:
-				T.getStats()
+				T.UpdateStats()
 				UpdateStatsCh = time.After(2 * time.Second)
 
 			}
@@ -399,8 +269,6 @@ func (T *TaskMon) CheckMsg() {
 		//in any case lets stop monitoring
 		T.MonChan <- 1
 		return
-	case T.P.Msg == "MASTER":
-		T.MakeMaster()
 	}
 	//Once you have read the message delete the message.
 	T.P.Msg = ""
