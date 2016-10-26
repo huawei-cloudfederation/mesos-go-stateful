@@ -6,11 +6,13 @@ import (
 	"io"
 	"os"
 	"strings"
-
+	"encoding/json"
+	"log"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
 	"golang.org/x/net/context"
+	 typ "../../common/types"
 )
 
 //A Package wrapper for handling docker containers
@@ -101,6 +103,29 @@ func (d *Dcontainer) Run(name, image string, cmd []string, mem int64, logFileNam
 	d.Cli = cli
 	return nil
 }
+
+func (d *Dcontainer) GetStats() (typ.StatsInfo,error) {
+
+	var data  typ.StatsInfo 
+
+	//start getting the docker container stats
+	resp,err := d.Cli.ContainerStats(d.Ctx, d.ID, true)
+	if err != nil {
+			log.Println("Container stats error",err)
+			return typ.StatsInfo{},err
+		}
+
+	defer resp.Body.Close()
+		body := io.Reader(resp.Body)
+
+	 if err := json.NewDecoder(body).Decode(&data); err != nil {
+                log.Printf("Json Unmarshall error = %v", err)
+		return typ.StatsInfo{},err
+        }
+	fmt.Println(data)
+	return data,nil
+}
+
 
 func (d *Dcontainer) Wait() int {
 	if d.ID == "" {
