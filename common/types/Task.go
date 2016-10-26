@@ -38,23 +38,23 @@ type Proc struct {
 //Stats the whole stats structure could be a json structure reflecting all the fields what redis info returns
 //currently one field has many new line saperated values;ToDO will this work if returned in API?
 type Stats struct {
-	Uptime        int64
-	Mem           int64
-	Clients       int
-	LastSyced     int
-	SlaveOffset   int64 //Offset of the slave
-	SlavePriority int
+        RxBytes        int64
+        CpuTotalUsage int
+        MemoryUsage      int64
+        BlockIOStats   []string 
 }
+
 
 //ProcJson Fields to be packed in a json when replied to a HTTP REST query.
 type ProcJson struct {
 	IP                 string
 	Port               string
 	MemoryCapacity     int
-	MemoryUsed         int64
-	Uptime             int64
-	ClientsConnected   int
-	LastSyncedToMaster int
+	 RxBytes        int64
+        CpuTotalUsage int
+        MemoryUsage      int64
+        BlockIOStats   []string 
+
 }
 
 //NewProc Constructor for a PROC struct, this does not sync anything to the DB
@@ -289,10 +289,11 @@ func (P *Proc) ToJson() *ProcJson {
 	if stats == nil {
 		return nil
 	}
-	pJson.MemoryUsed = stats.Mem
-	pJson.ClientsConnected = stats.Clients
-	pJson.Uptime = stats.Uptime
-	pJson.LastSyncedToMaster = stats.LastSyced
+
+	pJson.MemoryUsage = stats.MemoryUsage
+	pJson.CpuTotalUsage = stats.CpuTotalUsage
+	pJson.RxBytes = stats.RxBytes
+	pJson.BlockIOStats = stats.BlockIOStats
 
 	return &pJson
 
