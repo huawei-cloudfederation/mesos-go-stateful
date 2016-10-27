@@ -9,6 +9,7 @@ import (
 
 	"time"
 
+	"../../wlogs"
 	cli "github.com/coreos/etcd/client"
 	"golang.org/x/net/context"
 )
@@ -34,7 +35,7 @@ func TestLoginWithEndPoint(T *testing.T) {
 	var db etcdDB
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, "")
+		wlogs.Infof(w, "")
 	}))
 
 	defer ts.Close()
@@ -71,7 +72,7 @@ func TestLogWithoutEndPoint(T *testing.T) {
 func TestSetUpWithConfig(T *testing.T) {
 	var db etcdDB
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, `{"action":"set","node":{"dir": true,"key":"/test","value":"Hello","modifiedIndex":4,"createdIndex":4}}`)
+		wlogs.Infof(w, `{"action":"set","node":{"dir": true,"key":"/test","value":"Hello","modifiedIndex":4,"createdIndex":4}}`)
 	}))
 	defer ts.Close()
 
@@ -89,15 +90,13 @@ func TestSetUpWithoutConfig(T *testing.T) {
 	var db etcdDB
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, "A-ok")
+		wlogs.Infof(w, "A-ok")
 	}))
 	defer ts.Close()
 
 	config := ts.URL
 
 	err := db.Setup(config)
-
-	fmt.Println(err)
 
 	if err != nil && !strings.Contains(err.Error(), "response is invalid json. The endpoint is probably not valid etcd cluster endpoint") {
 		//If its some other error then fail
@@ -122,7 +121,7 @@ func TestCreateSectionWithKey(T *testing.T) {
 	var db etcdDB
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, `{"action":"set","node":{"key":"/testDir","value":"Hello","modifiedIndex":4,"createdIndex":4}}`)
+		wlogs.Infof(w, `{"action":"set","node":{"key":"/testDir","value":"Hello","modifiedIndex":4,"createdIndex":4}}`)
 	}))
 	defer ts.Close()
 
@@ -152,7 +151,7 @@ func TestCreateSectionWithoutKey(T *testing.T) {
 	var db etcdDB
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, "A-ok")
+		wlogs.Infof(w, "A-ok")
 	}))
 	defer ts.Close()
 
@@ -183,7 +182,7 @@ func TestSetWithKey(T *testing.T) {
 	var db etcdDB
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, `{"action":"set","node":{"key":"/testDir","value":"Hello","modifiedIndex":4,"createdIndex":4}}`)
+		wlogs.Infof(w, `{"action":"set","node":{"key":"/testDir","value":"Hello","modifiedIndex":4,"createdIndex":4}}`)
 	}))
 	defer ts.Close()
 
@@ -214,7 +213,7 @@ func TestSetWithoutKey(T *testing.T) {
 	var db etcdDB
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, "A-OK")
+		wlogs.Infof(w, "A-OK")
 	}))
 	defer ts.Close()
 
@@ -234,7 +233,6 @@ func TestSetWithoutKey(T *testing.T) {
 
 	err := db.Set("", "Hello")
 
-	fmt.Println(err)
 	if err != nil && !strings.Contains(err.Error(), "response is invalid json. The endpoint is probably not valid etcd cluster endpoint") {
 		//If its some other error then fail
 		T.Fail()
@@ -246,7 +244,7 @@ func TestGetValidConfig(T *testing.T) {
 	var db etcdDB
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, `{"action":"get","node":{"key":"/testDir","value":"Hello","modifiedIndex":4,"createdIndex":4}}`)
+		wlogs.Infof(w, `{"action":"get","node":{"key":"/testDir","value":"Hello","modifiedIndex":4,"createdIndex":4}}`)
 	}))
 	defer ts.Close()
 
@@ -273,7 +271,7 @@ func TestGetWithoutKey(T *testing.T) {
 	var db etcdDB
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, "A-ok")
+		wlogs.Infof(w, "A-ok")
 	}))
 	defer ts.Close()
 
@@ -304,7 +302,7 @@ func TestIsDir(T *testing.T) {
 	var db etcdDB
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, `{"action":"get","node":{"key":"/testDir","value":"Hello","modifiedIndex":4,"createdIndex":4}}`)
+		wlogs.Infof(w, `{"action":"get","node":{"key":"/testDir","value":"Hello","modifiedIndex":4,"createdIndex":4}}`)
 	}))
 	defer ts.Close()
 
@@ -331,7 +329,7 @@ func TestIsDirWithoutKey(T *testing.T) {
 	var db etcdDB
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, "A-ok")
+		wlogs.Infof(w, "A-ok")
 	}))
 	defer ts.Close()
 
@@ -363,7 +361,7 @@ func TestIsKey(T *testing.T) {
 	var db etcdDB
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, `{"action":"get","node":{"key":"/testDir","value":"Hello","modifiedIndex":4,"createdIndex":4}}`)
+		wlogs.Infof(w, `{"action":"get","node":{"key":"/testDir","value":"Hello","modifiedIndex":4,"createdIndex":4}}`)
 	}))
 	defer ts.Close()
 
@@ -390,7 +388,7 @@ func TestIsKeyWithoutKey(T *testing.T) {
 	var db etcdDB
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, "A-ok")
+		wlogs.Infof(w, "A-ok")
 	}))
 	defer ts.Close()
 
@@ -420,7 +418,7 @@ func TestIsKeyWithoutKey(T *testing.T) {
 func TestUpdate(T *testing.T) {
 	var db etcdDB
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, `{"action":"set","node":{"key":"/testDir","value":"Hello","modifiedIndex":4,"createdIndex":4}}`)
+		wlogs.Infof(w, `{"action":"set","node":{"key":"/testDir","value":"Hello","modifiedIndex":4,"createdIndex":4}}`)
 	}))
 
 	defer ts.Close()
@@ -449,7 +447,7 @@ func TestUpdate(T *testing.T) {
 func TestUpdateWithoutKey(T *testing.T) {
 	var db etcdDB
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, "A-ok")
+		wlogs.Infof(w, "A-ok")
 	}))
 
 	defer ts.Close()
@@ -480,7 +478,7 @@ func TestDeleteSectionWithoutKey(T *testing.T) {
 	var db etcdDB
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, "A-ok")
+		wlogs.Infof(w, "A-ok")
 	}))
 	defer ts.Close()
 
@@ -511,7 +509,7 @@ func TestDel(T *testing.T) {
 	var db etcdDB
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, `{"action":"delete","node":{"key":"/testDir","value":"Hello","modifiedIndex":4,"createdIndex":4}}`)
+		wlogs.Infof(w, `{"action":"delete","node":{"key":"/testDir","value":"Hello","modifiedIndex":4,"createdIndex":4}}`)
 	}))
 	defer ts.Close()
 
@@ -538,7 +536,7 @@ func TestDelWithoutKey(T *testing.T) {
 	var db etcdDB
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, "A-ok")
+		wlogs.Infof(w, "A-ok")
 	}))
 	defer ts.Close()
 
@@ -569,7 +567,7 @@ func TestListSection(T *testing.T) {
 	var db etcdDB
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, `{"action":"get","node":{"key":"/testDir","value":"Hello","modifiedIndex":4,"createdIndex":4}}`)
+		wlogs.Infof(w, `{"action":"get","node":{"key":"/testDir","value":"Hello","modifiedIndex":4,"createdIndex":4}}`)
 	}))
 	defer ts.Close()
 
@@ -596,7 +594,7 @@ func TestListSectionWithoutKey(T *testing.T) {
 	var db etcdDB
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, "A-ok")
+		wlogs.Infof(w, "A-ok")
 	}))
 	defer ts.Close()
 
@@ -627,7 +625,7 @@ func TestCleanSlateWithoutBaseDir(T *testing.T) {
 	var db etcdDB
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, "A-ok")
+		wlogs.Infof(w, "A-ok")
 	}))
 	defer ts.Close()
 

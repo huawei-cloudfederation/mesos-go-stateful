@@ -1,12 +1,11 @@
 package main
 
 import (
-	"./httplib"
 	"encoding/json"
 	"flag"
-	"fmt"
 	"io/ioutil"
-	"log"
+	"../common/wlogs"
+	"./httplib"
 )
 
 type Config struct {
@@ -31,23 +30,23 @@ func main() {
 	if *dumpConfig == true {
 		configBytes, err := json.MarshalIndent(Cfg, " ", "  ")
 		if err != nil {
-			log.Printf("Error marshalling the dummy config file. Exiting %v", err)
+			wlogs.Info("Error marshalling the dummy config file. Exiting %v", err)
 			return
 		}
-		fmt.Printf("%s\n", string(configBytes))
+		wlogs.Info("%s\n", string(configBytes))
 		return
 	}
 
 	cfgFile, err := ioutil.ReadFile(*cfgFileName)
 
 	if err != nil {
-		log.Printf("Error Reading the configration file. Resorting to default values")
+		wlogs.Info("Error Reading the configration file. Resorting to default values")
 	}
 	err = json.Unmarshal(cfgFile, &Cfg)
 	if err != nil {
-		log.Fatalf("Error parsing the config file %v", err)
+		wlogs.Fatal("Error parsing the config file %v", err)
 	}
-	log.Printf("Configuration file is = %v", Cfg)
+	wlogs.Info("Configuration file is = %v", Cfg)
 
 	//start http server
 	httplib.Run(Cfg.HTTPPort)

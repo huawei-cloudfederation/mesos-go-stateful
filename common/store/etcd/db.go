@@ -8,6 +8,9 @@ import (
 	"golang.org/x/net/context"
 )
 
+//global variables releated to ETCD
+var ETC_BASE_DIR, ETC_INST_DIR, ETC_CONF_DIR string
+
 type etcdDB struct {
 	C       cli.Client      //The client context
 	Kapi    cli.KeysAPI     //The api context for Get/Set/Delete/Update/Watcher etc.,
@@ -58,17 +61,20 @@ func (db *etcdDB) Setup(config string) error {
 		return err
 	}
 
+	ETC_BASE_DIR = db.BaseDir
 	err = db.CreateSection(db.BaseDir)
 	if err != nil && strings.Contains(err.Error(), "Key already exists") != true {
 		return err
 	}
 
+	ETC_INST_DIR = ETC_BASE_DIR + "/Instances"
 	db.InstDir = db.BaseDir + "/instance"
 	err = db.CreateSection(db.InstDir)
 	if err != nil && strings.Contains(err.Error(), "Key already exists") != true {
 		return err
 	}
 
+	ETC_CONF_DIR = ETC_BASE_DIR + "/Config"
 	db.ConfDir = db.BaseDir + "/config"
 	err = db.CreateSection(db.ConfDir)
 	if err != nil && strings.Contains(err.Error(), "Key already exists") != true {

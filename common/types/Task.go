@@ -2,12 +2,11 @@ package types
 
 import (
 	"encoding/json"
-	"fmt"
-	"log"
 	"strconv"
 	"strings"
 
 	"../store/etcd"
+	"../wlogs"
 )
 
 //Task A standalone task KV store is usually started in any slave (Linux) like below
@@ -37,23 +36,21 @@ type Proc struct {
 //Stats the whole stats structure could be a json structure reflecting all the fields what worklaod info returns
 //currently one field has many new line saperated values;ToDO will this work if returned in API?
 type Stats struct {
-        NRxbytes        int64
-        CpuUsage int
-        Mem      int64
-        BlkIOstats   []string 
+	NRxbytes   int64
+	CpuUsage   int
+	Mem        int64
+	BlkIOstats []string
 }
-
 
 //ProcJson Fields to be packed in a json when replied to a HTTP REST query.
 type ProcJson struct {
-	IP                 string
-	Port               string
-	MemoryCapacity     int
-	 RxBytes        int64
-        CpuTotalUsage int
-        MemoryUsage      int64
-        BlockIOStats   []string 
-
+	IP             string
+	Port           string
+	MemoryCapacity int
+	RxBytes        int64
+	CpuTotalUsage  int
+	MemoryUsage    int64
+	BlockIOStats   []string
 }
 
 //NewProc Constructor for a PROC struct, this does not sync anything to the DB
@@ -65,7 +62,7 @@ func NewProc(TskName string, Capacity int, Type string, SlaveOf string) *Proc {
 	if len(Tids) != 2 {
 		//Something wrong the TaskID should be of the format <InstanceName>::<UUID of the PROC>
 		//Throw an error and ignore
-		log.Printf("Wrong format Task Name %s", TskName)
+		wlogs.Info("Wrong format Task Name %s", TskName)
 		return nil
 	}
 
@@ -87,7 +84,7 @@ func LoadProc(TskName string) *Proc {
 	Tids := strings.Split(TskName, "::")
 
 	if len(Tids) != 2 {
-		log.Printf("Proc.Load() Wrong format Task Name %s", TskName)
+		wlogs.Info("Proc.Load() Wrong format Task Name %s", TskName)
 		return nil
 	}
 
@@ -111,7 +108,7 @@ func (P *Proc) Load() bool {
 	}
 
 	if ok, _ := Gdb.IsKey(P.Nodename); !ok {
-		log.Printf("Invalid Key %v, Cannot load", P.Nodename)
+		wlogs.Info("Invalid Key %v, Cannot load", P.Nodename)
 		return false
 	}
 
@@ -136,7 +133,7 @@ func (P *Proc) Load() bool {
 	P.SlaveOf, err = Gdb.Get(P.Nodename + "/SlaveOf")
 
 	if err != nil {
-		log.Printf("Error occured %v", err)
+		wlogs.Info("Error occured %v", err)
 		return false
 	}
 
@@ -182,7 +179,7 @@ func (P *Proc) SyncStats(s Stats) bool {
 	sBytes, err := json.Marshal(s)
 
 	if err != nil {
-		log.Printf("SyncStats() unbale to marshal error %v", err)
+		wlogs.Info("SyncStats() unbale to marshal error %v", err)
 		return false
 	}
 
@@ -233,14 +230,14 @@ func (P *Proc) LoadStats() *Stats {
 	P.Stats, err = Gdb.Get(P.Nodename + "/Stats")
 
 	if err != nil {
-		log.Printf("Error occured %v", err)
+		wlogs.Info("Error occured %v", err)
 		return nil
 	}
 
 	err = json.Unmarshal([]byte(P.Stats), &s)
 
 	if err != nil {
-		log.Printf("Error occured un-marshalling stats LoadStats() %v stats=%s", err, P.Stats)
+		wlogs.Info("Error occured un-marshalling stats LoadStats() %v stats=%s", err, P.Stats)
 		return nil
 	}
 	return &s
@@ -254,7 +251,7 @@ func (P *Proc) LoadType() bool {
 	}
 	P.Type, err = Gdb.Get(P.Nodename + "/Type")
 	if err != nil {
-		log.Printf("Error occured %v", err)
+		wlogs.Info("Error occured %v", err)
 		return false
 	}
 	return true
@@ -269,7 +266,7 @@ func (P *Proc) LoadMsg() bool {
 
 	P.Msg, err = Gdb.Get(P.Nodename + "/Msg")
 	if err != nil {
-		log.Printf("Error occured %v", err)
+		wlogs.Info("Error occured %v", err)
 		return false
 	}
 
@@ -295,15 +292,6 @@ func (P *Proc) ToJson() *ProcJson {
 
 	return &pJson
 
-	/*
-		ret_bytes, err := json.Marshal(p_json)
-
-		if err != nil {
-			return "{LoadStats Failed PROC}"
-		}
-
-		return string(ret_bytes)
-	*/
 }
 
 //ToJsonStats The stats are always store in JSON format in the DB/Store against a single key

@@ -2,9 +2,8 @@ package httplib
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/astaxie/beego"
-	"log"
+	"../../common/wlogs"
 )
 
 //MainController of the HTTP server
@@ -24,12 +23,12 @@ func (this *MainController) CreateInstance() {
 
 	err := json.Unmarshal(this.Ctx.Input.RequestBody, &data)
 	if err != nil {
-		log.Println("Cannot Unmarshal\n", err)
+		wlogs.Info("Cannot Unmarshal\n", err)
 		return
 	}
 
 	this.Ctx.ResponseWriter.WriteHeader(201)
-	this.Ctx.WriteString(fmt.Sprintf("Request Accepted, %s Instance will be created", name))
+	this.Ctx.WriteString(wlogs.Infoln("Request Accepted, %s Instance will be created", name))
 
 }
 
@@ -41,7 +40,7 @@ func (this *MainController) DeleteInstance() {
 	name = this.Ctx.Input.Param(":INSTANCENAME") //Get the name of the instance
 
 	this.Ctx.ResponseWriter.WriteHeader(200)
-	this.Ctx.WriteString(fmt.Sprintf("Request Placed for destroying %s instance", name))
+	this.Ctx.WriteString(wlogs.Infoln("Request Placed for destroying %s instance", name))
 
 }
 
@@ -55,7 +54,7 @@ func (this *MainController) StatusOfInstance() {
 	//Parse the input URL
 	name = this.Ctx.Input.Param(":INSTANCENAME") //Get the name of the instance
 
-	this.Ctx.WriteString(fmt.Sprintf("jsoninfo is empty for the instance %s", name))
+	this.Ctx.WriteString(wlogs.Infoln("jsoninfo is empty for the instance %s", name))
 }
 
 //StatusAll handles StatusAll REST call
@@ -74,13 +73,13 @@ func (this *MainController) AddSlaves() {
 	//parse the input URL
 	name = this.Ctx.Input.Param(":INSTANCENAME") //Get the name of the instance
 
-	this.Ctx.WriteString(fmt.Sprintf("Adding the instance slaves for the instance %s", name))
+	this.Ctx.WriteString(wlogs.Infoln("Adding the instance slaves for the instance %s", name))
 
 }
 
 //Run main function that starts the HTTP server
 func Run(config string) {
 
-	log.Printf("Starting the HTTP server at port %s", config)
+	wlogs.Info("Starting the HTTP server at port %s", config)
 	beego.Run(":" + config)
 }

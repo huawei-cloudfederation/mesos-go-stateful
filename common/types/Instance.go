@@ -2,12 +2,11 @@ package types
 
 import (
 	"encoding/json"
-	"fmt"
-	"log"
 	"path/filepath"
 	"strconv"
 
 	"../store/etcd"
+	"../wlogs"
 )
 
 //A Instance structure that will be able to store a tree of data, Everything related to a workload intance
@@ -87,7 +86,7 @@ func (I *Instance) Load() bool {
 	nodeNameSlaves := nodeName + "Snames/"
 	SnamesKey, err = Gdb.ListSection(nodeNameSlaves, false)
 	if err != nil {
-		log.Printf("The error value is %v", err)
+		wlogs.Info("The error value is %v", err)
 	}
 
 	for _, snamekey := range SnamesKey {
@@ -130,9 +129,6 @@ func (I *Instance) Sync() bool {
 	nodeNameProcs := nodeName + "Procs/"
 	Gdb.CreateSection(nodeNameProcs)
 
-	//for _, p := range I.Procs {
-	//p.Sync()
-	//}
 	return true
 }
 
@@ -219,7 +215,6 @@ type Instance_Json struct {
 	Master   *ProcJson
 	Slaves   []*ProcJson
 }
-
 
 //ToJson_Obj Filtered elementes of an Instnace that will be sent as an HTTP response
 func (I *Instance) ToJson_Obj() Instance_Json {

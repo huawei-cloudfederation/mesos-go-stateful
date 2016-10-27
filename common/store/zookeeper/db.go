@@ -1,10 +1,10 @@
 package zookeeper
 
 import (
-	"fmt"
 	"strings"
 	"time"
 
+	"../../wlogs"
 	"github.com/samuel/go-zookeeper/zk"
 )
 
@@ -43,7 +43,7 @@ func (db *zkDB) Set(Key string, Value string) error {
 	if _, err := db.Con.Set(Key, []byte(Value), -1); err != nil {
 		_, err := db.Con.Create(Key, []byte(Value), 0, DEF_ACL)
 		if err != nil {
-			fmt.Printf("Create error %v\n", err)
+			wlogs.Info("Create error %v\n", err)
 			return err
 		}
 	}
@@ -87,7 +87,7 @@ func (db *zkDB) CreateSection(Key string) error {
 	if _, err := db.Con.Set(Key, []byte{'.'}, -1); err != nil {
 		_, err = db.Con.Create(Key, []byte{'.'}, 0, DEF_ACL)
 		if err != nil {
-			fmt.Printf("Create Error %v\n", err)
+			wlogs.Info("Create Error %v\n", err)
 			return err
 		}
 	}

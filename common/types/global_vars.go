@@ -16,7 +16,6 @@ var (
 	Dchan     chan TaskMsg     //Channel for Destroyer
 )
 
-
 //Global constants for Instance Status
 //CREATING/ACTIVE/DELETED/DISABLED
 const (
