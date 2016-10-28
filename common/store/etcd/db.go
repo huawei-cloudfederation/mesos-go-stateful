@@ -8,8 +8,8 @@ import (
 	"golang.org/x/net/context"
 )
 
-//global variables releated to ETCD
-var ETC_BASE_DIR, ETC_INST_DIR, ETC_CONF_DIR string
+var   ETC_BASE_DIR ,ETC_INST_DIR ,ETC_CONF_DIR string 
+
 
 type etcdDB struct {
 	C       cli.Client      //The client context
@@ -60,6 +60,7 @@ func (db *etcdDB) Setup(config string) error {
 	if err != nil {
 		return err
 	}
+
 
 	ETC_BASE_DIR = db.BaseDir
 	err = db.CreateSection(db.BaseDir)

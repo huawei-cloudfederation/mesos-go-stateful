@@ -1,8 +1,8 @@
 package docker
 
 import (
+	"../../common/logs"
 	typ "../../common/types"
-	"../../common/wlogs"
 	"bufio"
 	"encoding/json"
 	"github.com/docker/docker/api/types"
@@ -30,7 +30,7 @@ func (d *Dcontainer) Run(name, image string, cmd []string, mem int64, logFileNam
 	var err error
 	d.LogFd, err = os.Create(logFileName)
 	if err != nil {
-		wlogs.Info("Unable to open the logfile")
+		logs.Printf("Unable to open the logfile")
 		return err
 	}
 
@@ -46,7 +46,7 @@ func (d *Dcontainer) Run(name, image string, cmd []string, mem int64, logFileNam
 	//Try to PUll the image and check the return response it ca be either of the two only
 	resp, err := cli.ImagePull(d.Ctx, image, types.ImagePullOptions{All: false})
 	if err != nil {
-		wlogs.Info("Error PUlling %v\n", err)
+		logs.Printf("Error PUlling %v\n", err)
 		d.Close(false)
 		return err
 	}
@@ -62,7 +62,7 @@ func (d *Dcontainer) Run(name, image string, cmd []string, mem int64, logFileNam
 	line_str := string(prev_line)
 	if !strings.Contains(line_str, "Image is up to date for") && !strings.Contains(line_str, "Downloaded newer image for") {
 		d.Close(false)
-		return wlogs.Error("%s pull failed\n", image)
+		return logs.Error("%s pull failed\n", image)
 	}
 
 	//The steps are as follows
@@ -77,7 +77,7 @@ func (d *Dcontainer) Run(name, image string, cmd []string, mem int64, logFileNam
 	hconfig := container.HostConfig{NetworkMode: "host", Resources: container.Resources{Memory: mem}}
 	r, err := cli.ContainerCreate(d.Ctx, &cconfig, &hconfig, nil, name)
 	if err != nil {
-		wlogs.Info("Error creating a container %v\n", err)
+		logs.Printf("Error creating a container %v\n", err)
 		d.Close(false)
 		return err
 	}
@@ -85,7 +85,7 @@ func (d *Dcontainer) Run(name, image string, cmd []string, mem int64, logFileNam
 	//ATTACH
 	d.HijackedRes, err = cli.ContainerAttach(d.Ctx, r.ID, types.ContainerAttachOptions{Stdout: true, Stderr: true, Stream: true})
 	if err != nil {
-		wlogs.Info("Unable to attach the container\n")
+		logs.Printf("Unable to attach the container\n")
 		d.Close(true)
 		return err
 	}
@@ -93,7 +93,7 @@ func (d *Dcontainer) Run(name, image string, cmd []string, mem int64, logFileNam
 	//START
 	err = cli.ContainerStart(d.Ctx, r.ID, types.ContainerStartOptions{})
 	if err != nil {
-		wlogs.Info("Unable to start a docker container\n")
+		logs.Printf("Unable to start a docker container\n")
 		d.Close(true)
 		return err
 	}
@@ -110,7 +110,7 @@ func (d *Dcontainer) GetStats() (typ.StatsInfo, error) {
 	//start getting the docker container stats
 	resp, err := d.Cli.ContainerStats(d.Ctx, d.ID, true)
 	if err != nil {
-		wlogs.Info("Container stats error", err)
+		logs.Println("Container stats error", err)
 		return typ.StatsInfo{}, err
 	}
 
@@ -118,10 +118,10 @@ func (d *Dcontainer) GetStats() (typ.StatsInfo, error) {
 	body := io.Reader(resp.Body)
 
 	if err := json.NewDecoder(body).Decode(&data); err != nil {
-		wlogs.Info("Json Unmarshall error = %v", err)
+		logs.Printf("Json Unmarshall error = %v", err)
 		return typ.StatsInfo{}, err
 	}
-
+	logs.Println(data)
 	return data, nil
 }
 
@@ -135,7 +135,7 @@ func (d *Dcontainer) Wait() int {
 		fdw := bufio.NewWriter(d.LogFd)
 		_, err := io.Copy(fdw, d.HijackedRes.Reader)
 		if err != nil {
-			wlogs.Info("Error copying to STDOUT %v", err)
+			logs.Printf("Error copying to STDOUT %v", err)
 		}
 	}()
 	retVal, _ := d.Cli.ContainerWait(d.Ctx, d.ID)
@@ -151,7 +151,7 @@ func (d *Dcontainer) Close(HijackRes bool) {
 
 func (d *Dcontainer) Kill() error {
 	if d.ID == "" {
-		return wlogs.Error("Invalid Container")
+		return logs.Error("Invalid Container")
 	}
 	return d.Cli.ContainerKill(d.Ctx, d.ID, "KILL")
 }

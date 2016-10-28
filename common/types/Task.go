@@ -2,11 +2,12 @@ package types
 
 import (
 	"encoding/json"
+	"fmt"
 	"strconv"
 	"strings"
 
+	"../logs"
 	"../store/etcd"
-	"../wlogs"
 )
 
 //Task A standalone task KV store is usually started in any slave (Linux) like below
@@ -62,7 +63,7 @@ func NewProc(TskName string, Capacity int, Type string, SlaveOf string) *Proc {
 	if len(Tids) != 2 {
 		//Something wrong the TaskID should be of the format <InstanceName>::<UUID of the PROC>
 		//Throw an error and ignore
-		wlogs.Info("Wrong format Task Name %s", TskName)
+		logs.Printf("Wrong format Task Name %s", TskName)
 		return nil
 	}
 
@@ -84,7 +85,7 @@ func LoadProc(TskName string) *Proc {
 	Tids := strings.Split(TskName, "::")
 
 	if len(Tids) != 2 {
-		wlogs.Info("Proc.Load() Wrong format Task Name %s", TskName)
+		logs.Printf("Proc.Load() Wrong format Task Name %s", TskName)
 		return nil
 	}
 
@@ -108,7 +109,7 @@ func (P *Proc) Load() bool {
 	}
 
 	if ok, _ := Gdb.IsKey(P.Nodename); !ok {
-		wlogs.Info("Invalid Key %v, Cannot load", P.Nodename)
+		logs.Printf("Invalid Key %v, Cannot load", P.Nodename)
 		return false
 	}
 
@@ -133,7 +134,7 @@ func (P *Proc) Load() bool {
 	P.SlaveOf, err = Gdb.Get(P.Nodename + "/SlaveOf")
 
 	if err != nil {
-		wlogs.Info("Error occured %v", err)
+		logs.Printf("Error occured %v", err)
 		return false
 	}
 
@@ -179,7 +180,7 @@ func (P *Proc) SyncStats(s Stats) bool {
 	sBytes, err := json.Marshal(s)
 
 	if err != nil {
-		wlogs.Info("SyncStats() unbale to marshal error %v", err)
+		logs.Printf("SyncStats() unbale to marshal error %v", err)
 		return false
 	}
 
@@ -230,14 +231,14 @@ func (P *Proc) LoadStats() *Stats {
 	P.Stats, err = Gdb.Get(P.Nodename + "/Stats")
 
 	if err != nil {
-		wlogs.Info("Error occured %v", err)
+		logs.Printf("Error occured %v", err)
 		return nil
 	}
 
 	err = json.Unmarshal([]byte(P.Stats), &s)
 
 	if err != nil {
-		wlogs.Info("Error occured un-marshalling stats LoadStats() %v stats=%s", err, P.Stats)
+		logs.Printf("Error occured un-marshalling stats LoadStats() %v stats=%s", err, P.Stats)
 		return nil
 	}
 	return &s
@@ -251,13 +252,13 @@ func (P *Proc) LoadType() bool {
 	}
 	P.Type, err = Gdb.Get(P.Nodename + "/Type")
 	if err != nil {
-		wlogs.Info("Error occured %v", err)
+		logs.Printf("Error occured %v", err)
 		return false
 	}
 	return true
 }
 
-//LoadMsg Get the latest MSG from the scheduler, usually called by the executor(RedMon)
+//LoadMsg Get the latest MSG from the scheduler, usually called by the executor(TaskMon)
 func (P *Proc) LoadMsg() bool {
 	var err error
 	if Gdb.IsSetup() != true {
@@ -266,7 +267,7 @@ func (P *Proc) LoadMsg() bool {
 
 	P.Msg, err = Gdb.Get(P.Nodename + "/Msg")
 	if err != nil {
-		wlogs.Info("Error occured %v", err)
+		logs.Printf("Error occured %v", err)
 		return false
 	}
 
@@ -292,6 +293,15 @@ func (P *Proc) ToJson() *ProcJson {
 
 	return &pJson
 
+	/*
+		ret_bytes, err := json.Marshal(p_json)
+
+		if err != nil {
+			return "{LoadStats Failed PROC}"
+		}
+
+		return string(ret_bytes)
+	*/
 }
 
 //ToJsonStats The stats are always store in JSON format in the DB/Store against a single key

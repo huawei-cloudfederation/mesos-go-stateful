@@ -15,19 +15,6 @@ func TestMain(M *testing.M) {
 
 }
 
-func TestUpdateStats(T *testing.T) {
-	var tm TaskMon
-	tm.Image = "sameersbn/postgresql"
-	tm.IP = "127.0.0.1"
-	tm.Port = 2375
-	tm.Container = &docker.Dcontainer{}
-
-	val := tm.UpdateStats()
-
-	fmt.Println(val)
-
-}
-
 func TestLaunchWorkload(T *testing.T) {
 	var tm TaskMon
 	tm.Image = "sameersbn/postgresql"
