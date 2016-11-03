@@ -1,7 +1,7 @@
 package types
 
 import (
-	"../logs"
+	"log"
 	"container/list"
 
 	"../store/etcd"
@@ -27,14 +27,14 @@ func Initialize(dbtype string, config string) (bool, error) {
 		Gdb = etcd.New()
 		err := Gdb.Setup(config)
 		if err != nil {
-			logs.Fatalf("Failed to setup etcd database error:%v", err)
+			log.Fatalf("Failed to setup etcd database error:%v", err)
 		}
 		return Gdb.IsSetup(), nil
 	case "zookeeper":
 		Gdb = zookeeper.New()
 		err := Gdb.Setup(config)
 		if err != nil {
-			logs.Fatalf("Failed to setup zookeeper database error:%v", err)
+			log.Fatalf("Failed to setup zookeeper database error:%v", err)
 		}
 		return Gdb.IsSetup(), nil
 	}

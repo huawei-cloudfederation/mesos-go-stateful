@@ -8,7 +8,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-var   ETC_BASE_DIR ,ETC_INST_DIR ,ETC_CONF_DIR string 
+var   ETCD_BASEDIR ,ETCD_INSTDIR ,ETCD_CONFDIR string 
 
 
 type etcdDB struct {
@@ -61,21 +61,22 @@ func (db *etcdDB) Setup(config string) error {
 		return err
 	}
 
+	db.BaseDir = "/Workload"
 
-	ETC_BASE_DIR = db.BaseDir
+	ETCD_BASEDIR = db.BaseDir
 	err = db.CreateSection(db.BaseDir)
 	if err != nil && strings.Contains(err.Error(), "Key already exists") != true {
 		return err
 	}
 
-	ETC_INST_DIR = ETC_BASE_DIR + "/Instances"
+	ETCD_INSTDIR = ETCD_BASEDIR + "/Instances"
 	db.InstDir = db.BaseDir + "/instance"
 	err = db.CreateSection(db.InstDir)
 	if err != nil && strings.Contains(err.Error(), "Key already exists") != true {
 		return err
 	}
 
-	ETC_CONF_DIR = ETC_BASE_DIR + "/Config"
+	ETCD_CONFDIR = ETCD_BASEDIR + "/Config"
 	db.ConfDir = db.BaseDir + "/config"
 	err = db.CreateSection(db.ConfDir)
 	if err != nil && strings.Contains(err.Error(), "Key already exists") != true {

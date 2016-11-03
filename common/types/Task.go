@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"../logs"
+	"log"
 	"../store/etcd"
 )
 
@@ -63,7 +63,7 @@ func NewProc(TskName string, Capacity int, Type string, SlaveOf string) *Proc {
 	if len(Tids) != 2 {
 		//Something wrong the TaskID should be of the format <InstanceName>::<UUID of the PROC>
 		//Throw an error and ignore
-		logs.Printf("Wrong format Task Name %s", TskName)
+		log.Printf("Wrong format Task Name %s", TskName)
 		return nil
 	}
 
@@ -73,7 +73,7 @@ func NewProc(TskName string, Capacity int, Type string, SlaveOf string) *Proc {
 	tmpProc.Type = Type
 	tmpProc.SlaveOf = SlaveOf
 
-	tmpProc.Nodename = etcd.ETC_INST_DIR + "/" + tmpProc.Instance + "/Procs/" + tmpProc.ID
+	tmpProc.Nodename = etcd.ETCD_INSTDIR + "/" + tmpProc.Instance + "/Procs/" + tmpProc.ID
 	return &tmpProc
 }
 
@@ -85,14 +85,14 @@ func LoadProc(TskName string) *Proc {
 	Tids := strings.Split(TskName, "::")
 
 	if len(Tids) != 2 {
-		logs.Printf("Proc.Load() Wrong format Task Name %s", TskName)
+		log.Printf("Proc.Load() Wrong format Task Name %s", TskName)
 		return nil
 	}
 
 	P.Instance = Tids[0]
 	P.ID = Tids[1]
 
-	P.Nodename = etcd.ETC_INST_DIR + "/" + P.Instance + "/Procs/" + P.ID
+	P.Nodename = etcd.ETCD_INSTDIR + "/" + P.Instance + "/Procs/" + P.ID
 
 	P.Load()
 
@@ -109,7 +109,7 @@ func (P *Proc) Load() bool {
 	}
 
 	if ok, _ := Gdb.IsKey(P.Nodename); !ok {
-		logs.Printf("Invalid Key %v, Cannot load", P.Nodename)
+		log.Printf("Invalid Key %v, Cannot load", P.Nodename)
 		return false
 	}
 
@@ -134,7 +134,7 @@ func (P *Proc) Load() bool {
 	P.SlaveOf, err = Gdb.Get(P.Nodename + "/SlaveOf")
 
 	if err != nil {
-		logs.Printf("Error occured %v", err)
+		log.Printf("Error occured %v", err)
 		return false
 	}
 
@@ -180,7 +180,7 @@ func (P *Proc) SyncStats(s Stats) bool {
 	sBytes, err := json.Marshal(s)
 
 	if err != nil {
-		logs.Printf("SyncStats() unbale to marshal error %v", err)
+		log.Printf("SyncStats() unbale to marshal error %v", err)
 		return false
 	}
 
@@ -231,14 +231,14 @@ func (P *Proc) LoadStats() *Stats {
 	P.Stats, err = Gdb.Get(P.Nodename + "/Stats")
 
 	if err != nil {
-		logs.Printf("Error occured %v", err)
+		log.Printf("Error occured %v", err)
 		return nil
 	}
 
 	err = json.Unmarshal([]byte(P.Stats), &s)
 
 	if err != nil {
-		logs.Printf("Error occured un-marshalling stats LoadStats() %v stats=%s", err, P.Stats)
+		log.Printf("Error occured un-marshalling stats LoadStats() %v stats=%s", err, P.Stats)
 		return nil
 	}
 	return &s
@@ -252,7 +252,7 @@ func (P *Proc) LoadType() bool {
 	}
 	P.Type, err = Gdb.Get(P.Nodename + "/Type")
 	if err != nil {
-		logs.Printf("Error occured %v", err)
+		log.Printf("Error occured %v", err)
 		return false
 	}
 	return true
@@ -267,7 +267,7 @@ func (P *Proc) LoadMsg() bool {
 
 	P.Msg, err = Gdb.Get(P.Nodename + "/Msg")
 	if err != nil {
-		logs.Printf("Error occured %v", err)
+		log.Printf("Error occured %v", err)
 		return false
 	}
 

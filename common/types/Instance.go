@@ -2,11 +2,11 @@ package types
 
 import (
 	"encoding/json"
-	"fmt"
 	"path/filepath"
 	"strconv"
 
-	"../logs"
+	"fmt"
+	"log"
 	"../store/etcd"
 )
 
@@ -43,7 +43,7 @@ func LoadInstance(Name string) *Instance {
 		return nil
 	}
 
-	nodeName := etcd.etcdDB.InstDir + "/" + Name
+	nodeName := etcd.ETCD_INSTDIR + "/" + Name
 
 	if ok, _ := Gdb.IsKey(nodeName); !ok {
 		return nil
@@ -69,7 +69,7 @@ func (I *Instance) Load() bool {
 		return false
 	}
 
-	nodeName := etcd.ETC_INST_DIR + "/" + I.Name + "/"
+	nodeName := etcd.ETCD_INSTDIR + "/" + I.Name + "/"
 	I.Type, err = Gdb.Get(nodeName + "Type")
 	tmpStr, err = Gdb.Get(nodeName + "Capacity")
 	I.Capacity, err = strconv.Atoi(tmpStr)
@@ -87,7 +87,7 @@ func (I *Instance) Load() bool {
 	nodeNameSlaves := nodeName + "Snames/"
 	SnamesKey, err = Gdb.ListSection(nodeNameSlaves, false)
 	if err != nil {
-		logs.Printf("The error value is %v", err)
+		log.Printf("The error value is %v", err)
 	}
 
 	for _, snamekey := range SnamesKey {
@@ -107,7 +107,7 @@ func (I *Instance) Sync() bool {
 		return false
 	}
 
-	nodeName := etcd.ETC_INST_DIR + "/" + I.Name + "/"
+	nodeName := etcd.ETCD_INSTDIR + "/" + I.Name + "/"
 
 	Gdb.CreateSection(nodeName)
 	Gdb.Set(nodeName+"Type", I.Type)
@@ -143,7 +143,7 @@ func (I *Instance) SyncType(string) bool {
 		return false
 	}
 
-	nodeName := etcd.ETC_INST_DIR + "/" + I.Name + "/"
+	nodeName := etcd.ETCD_INSTDIR + "/" + I.Name + "/"
 	Gdb.Set(nodeName+"Type", I.Type)
 	return true
 }
@@ -155,7 +155,7 @@ func (I *Instance) SyncStatus() bool {
 		return false
 	}
 
-	nodeName := etcd.ETC_INST_DIR + "/" + I.Name + "/"
+	nodeName := etcd.ETCD_INSTDIR + "/" + I.Name + "/"
 	Gdb.Set(nodeName+"Status", I.Status)
 	return true
 }
@@ -167,7 +167,7 @@ func (I *Instance) SyncSlaves() bool {
 		return false
 	}
 
-	nodeName := etcd.ETC_INST_DIR + "/" + I.Name + "/"
+	nodeName := etcd.ETCD_INSTDIR + "/" + I.Name + "/"
 	Gdb.Set(nodeName+"Slaves", fmt.Sprintf("%d", I.Slaves))
 	//Create Section for Slaves and Procs
 	nodeNameSlaves := nodeName + "Snames/"
@@ -186,7 +186,7 @@ func (I *Instance) SyncMasters() bool {
 		return false
 	}
 
-	nodeName := etcd.ETC_INST_DIR + "/" + I.Name + "/"
+	nodeName := etcd.ETCD_INSTDIR + "/" + I.Name + "/"
 	Gdb.Set(nodeName+"Masters", fmt.Sprintf("%d", I.Masters))
 	Gdb.Set(nodeName+"Mname", I.Mname)
 	return true
@@ -202,7 +202,7 @@ func (I *Instance) LoadProcs() bool {
 	I.Procs[I.Mname] = LoadProc(I.Name + "::" + I.Mname)
 
 	for _, n := range I.Snames {
-		logs.Printf("Laoding proc key=%v ", n)
+		log.Printf("Laoding proc key=%v ", n)
 		I.Procs[n] = LoadProc(I.Name + "::" + n)
 	}
 
