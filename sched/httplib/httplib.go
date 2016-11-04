@@ -1,11 +1,10 @@
 package httplib
 
 import (
-	"encoding/json"
 	"fmt"
+	"encoding/json"
 	"github.com/astaxie/beego"
-//	"../../common/log"
-	"log"
+	"../../common/logs"
 )
 
 //MainController of the HTTP server
@@ -23,11 +22,9 @@ func (this *MainController) CreateInstance() {
 	var data map[string]interface{}
 	name = this.Ctx.Input.Param(":INSTANCENAME")
 
-
-
 	err := json.Unmarshal(this.Ctx.Input.RequestBody, &data)
 	if err != nil {
-		log.Println("Cannot Unmarshal\n", err)
+		logs.Println("Cannot Unmarshal\n", err)
 		return
 	}
 
@@ -68,7 +65,7 @@ func (this *MainController) ListAllInstances() {
 
 }
 
-//UpdateSlaves Not yet implemented
+//UpdateSlaves handles AddSlaves REST call 
 func (this *MainController) AddSlaves() {
 
 	//var name string
@@ -84,6 +81,6 @@ func (this *MainController) AddSlaves() {
 //Run main function that starts the HTTP server
 func Run(config string) {
 
-	log.Printf("Starting the HTTP server at port %s", config)
+	logs.Printf("Starting the HTTP server at port %s", config)
 	beego.Run(":" + config)
 }

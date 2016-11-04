@@ -7,7 +7,7 @@ type TaskUpdate struct {
 	Data  []byte
 }
 
-//Stats structure is to populate docker stats
+//StatsInfo type is used to store docker stats
 type StatsInfo struct {
 	StatsTime    string  `json:"read"`
 	Network      statnet `json:"network"`
