@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/astaxie/beego"
+//	"../../common/log"
 	"log"
 )
 
@@ -21,6 +22,8 @@ func (this *MainController) CreateInstance() {
 
 	var data map[string]interface{}
 	name = this.Ctx.Input.Param(":INSTANCENAME")
+
+
 
 	err := json.Unmarshal(this.Ctx.Input.RequestBody, &data)
 	if err != nil {

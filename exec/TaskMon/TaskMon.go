@@ -12,7 +12,6 @@ import (
 	"../docker"
 )
 
-
 //TaskMon This structure is used to implement a monitor thread/goroutine for a running task
 //This structure should be extended only if more functionality is required on the Monitoring functionality
 //A task objec is created within this and monitored hence forth
@@ -73,7 +72,6 @@ func NewTaskMon(tskName string, IP string, Port int, data string, L *log.Logger,
 	return &T
 }
 
-
 func (T *TaskMon) launchWorkload(isSlave bool, IP string, port string) bool {
 
 	var err error
@@ -91,38 +89,33 @@ func (T *TaskMon) launchWorkload(isSlave bool, IP string, port string) bool {
 	//hack otherwise its too quick to have the server receiving connections
 	time.Sleep(time.Second)
 
-
 	return true
 }
 
 //UpdateStats Update the stats structure and flush it to the Store/DB
 func (T *TaskMon) UpdateStats() bool {
 
-
 	var workloadStats typ.Stats
 
-	data,err  := T.Container.GetStats()
+	data, err := T.Container.GetStats()
 
 	if err != nil {
-		log.Println("GetStats error",err)
-                return false
+		log.Println("GetStats error", err)
+		return false
 	}
 
+	workloadStats.NRxbytes = data.Network.RxBytes
+	workloadStats.CpuUsage = data.CStats.CpuUsage.TotalUsage
+	workloadStats.Mem = data.MStats.Usage
+	workloadStats.BlkIOstats = data.BlockIOStats.IOServiceBytesRecursive
 
-        workloadStats.NRxbytes = data.Network.RxBytes
-        workloadStats.CpuUsage =  data.CStats.CpuUsage.TotalUsage
-        workloadStats.Mem =  data.MStats.Usage
-        workloadStats.BlkIOstats =   data.BlockIOStats.IOServiceBytesRecursive
-
-        errSync := T.P.SyncStats(workloadStats)
-        if !errSync {
-                T.L.Printf("Error syncing stats to store")
-                return false
-        }
-        return true
+	errSync := T.P.SyncStats(workloadStats)
+	if !errSync {
+		T.L.Printf("Error syncing stats to store")
+		return false
+	}
+	return true
 }
-
-
 
 //Start the workload be it Master or Slave
 func (T *TaskMon) Start() bool {
@@ -224,11 +217,11 @@ func (T *TaskMon) Stop() bool {
 	//send kill command for a graceful exit of the worklaod
 	//the server exited graceful will reflect at the task status FINISHED
 
-		errMsg := T.Die()
-		if !errMsg { //message should be read by scheduler
-			T.L.Printf("Killing the worklaod also did not work for  IP:%s and port:%d", T.IP, T.Port)
-			return false
-		}
+	errMsg := T.Die()
+	if !errMsg { //message should be read by scheduler
+		T.L.Printf("Killing the worklaod also did not work for  IP:%s and port:%d", T.IP, T.Port)
+		return false
+	}
 
 	return true
 

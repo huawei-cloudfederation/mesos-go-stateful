@@ -5,7 +5,6 @@
 package docker
 
 import (
-	"fmt"
 	"os"
 	"strings"
 	"testing"
@@ -29,8 +28,6 @@ func TestRun(T *testing.T) {
 
 	err := dc.Run(name, image, cmd, mem, logfile)
 
-	fmt.Println(err)
-
 	if err != nil {
 		//If its some other error then fail
 		T.Fail()
@@ -48,9 +45,7 @@ func TestRunImagePullFailed(T *testing.T) {
 	cmd := []string{}
 	logfile := "testlog"
 
-	err := dc.Run(name, image, cmd, mem, logfile)
-
-	fmt.Println(err)
+	dc.Run(name, image, cmd, mem, logfile)
 
 }
 
@@ -63,9 +58,7 @@ func TestRunImagePullError(T *testing.T) {
 	cmd := []string{}
 	logfile := "testlog"
 
-	err := dc.Run(name, image, cmd, mem, logfile)
-
-	fmt.Println(err)
+	dc.Run(name, image, cmd, mem, logfile)
 
 }
 
@@ -79,8 +72,6 @@ func TestRunLogFileError(T *testing.T) {
 	logfile := ""
 
 	err := dc.Run(name, image, cmd, mem, logfile)
-
-	fmt.Println(err)
 
 	if err != nil && strings.Contains(err.Error(), "Unable to open the logfileopen : no such file or directory") {
 		//If its some other error then fail
@@ -100,8 +91,6 @@ func TestRunCreateContainerError(T *testing.T) {
 
 	err := dc.Run(name, image, cmd, mem, logfile)
 
-	fmt.Println(err)
-
 	if err == nil {
 		//If its some other error then fail
 		T.Fail()
@@ -119,8 +108,6 @@ func TestRunStartContainerError(T *testing.T) {
 	logfile := "testLog"
 
 	err := dc.Run(name, image, cmd, mem, logfile)
-
-	fmt.Println(err)
 
 	if err == nil {
 		//If its some other error then fail
@@ -156,8 +143,6 @@ func TestKillError(T *testing.T) {
 	dc.ID = ""
 
 	err := dc.Kill()
-
-	fmt.Println(err)
 
 	if err != nil && !strings.Contains(err.Error(), "Invalid Container") {
 		//If its some other error then fail

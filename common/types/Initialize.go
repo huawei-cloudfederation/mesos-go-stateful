@@ -1,8 +1,8 @@
 package types
 
 import (
-	"container/list"
 	"log"
+	"container/list"
 
 	"../store/etcd"
 	"../store/zookeeper"

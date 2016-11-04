@@ -3,10 +3,10 @@ package types
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"strconv"
 	"strings"
 
+	"log"
 	"../store/etcd"
 )
 
@@ -37,23 +37,21 @@ type Proc struct {
 //Stats the whole stats structure could be a json structure reflecting all the fields what worklaod info returns
 //currently one field has many new line saperated values;ToDO will this work if returned in API?
 type Stats struct {
-        NRxbytes        int64
-        CpuUsage int
-        Mem      int64
-        BlkIOstats   []string 
+	NRxbytes   int64
+	CpuUsage   int
+	Mem        int64
+	BlkIOstats []string
 }
-
 
 //ProcJson Fields to be packed in a json when replied to a HTTP REST query.
 type ProcJson struct {
-	IP                 string
-	Port               string
-	MemoryCapacity     int
-	 RxBytes        int64
-        CpuTotalUsage int
-        MemoryUsage      int64
-        BlockIOStats   []string 
-
+	IP             string
+	Port           string
+	MemoryCapacity int
+	RxBytes        int64
+	CpuTotalUsage  int
+	MemoryUsage    int64
+	BlockIOStats   []string
 }
 
 //NewProc Constructor for a PROC struct, this does not sync anything to the DB
@@ -75,7 +73,7 @@ func NewProc(TskName string, Capacity int, Type string, SlaveOf string) *Proc {
 	tmpProc.Type = Type
 	tmpProc.SlaveOf = SlaveOf
 
-	tmpProc.Nodename = etcd.ETC_INST_DIR + "/" + tmpProc.Instance + "/Procs/" + tmpProc.ID
+	tmpProc.Nodename = etcd.ETCD_INSTDIR + "/" + tmpProc.Instance + "/Procs/" + tmpProc.ID
 	return &tmpProc
 }
 
@@ -94,7 +92,7 @@ func LoadProc(TskName string) *Proc {
 	P.Instance = Tids[0]
 	P.ID = Tids[1]
 
-	P.Nodename = etcd.ETC_INST_DIR + "/" + P.Instance + "/Procs/" + P.ID
+	P.Nodename = etcd.ETCD_INSTDIR + "/" + P.Instance + "/Procs/" + P.ID
 
 	P.Load()
 
@@ -260,7 +258,7 @@ func (P *Proc) LoadType() bool {
 	return true
 }
 
-//LoadMsg Get the latest MSG from the scheduler, usually called by the executor(RedMon)
+//LoadMsg Get the latest MSG from the scheduler, usually called by the executor(TaskMon)
 func (P *Proc) LoadMsg() bool {
 	var err error
 	if Gdb.IsSetup() != true {

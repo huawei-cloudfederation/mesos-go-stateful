@@ -1,10 +1,10 @@
 package zookeeper
 
 import (
-	"fmt"
 	"strings"
 	"time"
 
+	"log"
 	"github.com/samuel/go-zookeeper/zk"
 )
 
@@ -39,11 +39,11 @@ func (db *zkDB) IsSetup() bool {
 }
 
 func (db *zkDB) Set(Key string, Value string) error {
-	fmt.Printf("ZOO K=%s V=%s\n", Key, Value)
+	log.Printf("ZOO K=%s V=%s\n", Key, Value)
 	if _, err := db.Con.Set(Key, []byte(Value), -1); err != nil {
 		_, err := db.Con.Create(Key, []byte(Value), 0, DEF_ACL)
 		if err != nil {
-			fmt.Printf("Create error %v\n", err)
+			log.Printf("Create error %v\n", err)
 			return err
 		}
 	}
@@ -82,12 +82,12 @@ func (db *zkDB) Del(Key string) error {
 
 //CreateSection will create a directory in zookeeper store
 func (db *zkDB) CreateSection(Key string) error {
-	fmt.Printf("ZOO CREATE SECTION K=%s \n", Key)
+	log.Printf("ZOO CREATE SECTION K=%s \n", Key)
 	Key = strings.TrimSuffix(Key, "/")
 	if _, err := db.Con.Set(Key, []byte{'.'}, -1); err != nil {
 		_, err = db.Con.Create(Key, []byte{'.'}, 0, DEF_ACL)
 		if err != nil {
-			fmt.Printf("Create Error %v\n", err)
+			log.Printf("Create Error %v\n", err)
 			return err
 		}
 	}

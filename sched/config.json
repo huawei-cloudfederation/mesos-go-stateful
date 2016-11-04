@@ -1,5 +1,13 @@
 {
-
-	"HTTPPort": "5055"
-
+   "UserName": "ubuntu",
+   "FrameworkName": "postgres",
+   "Master": "10.145.208.120:5050",
+   "ExecutorPath": "./WorkloadExecutor",
+   "Image": "sameersbn/postgresql",
+   "DBType": "etcd",
+   "DBEndPoint": "http://10.11.12.24:2379",
+   "LogFile": "stderr",
+   "ArtifactIP": "127.0.0.1",
+   "ArtifactPort": "5454",
+   "HTTPPort": "5656"
 }

@@ -2,11 +2,11 @@ package types
 
 import (
 	"encoding/json"
-	"fmt"
-	"log"
 	"path/filepath"
 	"strconv"
 
+	"fmt"
+	"log"
 	"../store/etcd"
 )
 
@@ -43,7 +43,7 @@ func LoadInstance(Name string) *Instance {
 		return nil
 	}
 
-	nodeName := etcd.etcdDB.InstDir + "/" + Name
+	nodeName := etcd.ETCD_INSTDIR + "/" + Name
 
 	if ok, _ := Gdb.IsKey(nodeName); !ok {
 		return nil
@@ -69,7 +69,7 @@ func (I *Instance) Load() bool {
 		return false
 	}
 
-	nodeName := etcd.ETC_INST_DIR + "/" + I.Name + "/"
+	nodeName := etcd.ETCD_INSTDIR + "/" + I.Name + "/"
 	I.Type, err = Gdb.Get(nodeName + "Type")
 	tmpStr, err = Gdb.Get(nodeName + "Capacity")
 	I.Capacity, err = strconv.Atoi(tmpStr)
@@ -107,7 +107,7 @@ func (I *Instance) Sync() bool {
 		return false
 	}
 
-	nodeName := etcd.ETC_INST_DIR + "/" + I.Name + "/"
+	nodeName := etcd.ETCD_INSTDIR + "/" + I.Name + "/"
 
 	Gdb.CreateSection(nodeName)
 	Gdb.Set(nodeName+"Type", I.Type)
@@ -143,7 +143,7 @@ func (I *Instance) SyncType(string) bool {
 		return false
 	}
 
-	nodeName := etcd.ETC_INST_DIR + "/" + I.Name + "/"
+	nodeName := etcd.ETCD_INSTDIR + "/" + I.Name + "/"
 	Gdb.Set(nodeName+"Type", I.Type)
 	return true
 }
@@ -155,7 +155,7 @@ func (I *Instance) SyncStatus() bool {
 		return false
 	}
 
-	nodeName := etcd.ETC_INST_DIR + "/" + I.Name + "/"
+	nodeName := etcd.ETCD_INSTDIR + "/" + I.Name + "/"
 	Gdb.Set(nodeName+"Status", I.Status)
 	return true
 }
@@ -167,7 +167,7 @@ func (I *Instance) SyncSlaves() bool {
 		return false
 	}
 
-	nodeName := etcd.ETC_INST_DIR + "/" + I.Name + "/"
+	nodeName := etcd.ETCD_INSTDIR + "/" + I.Name + "/"
 	Gdb.Set(nodeName+"Slaves", fmt.Sprintf("%d", I.Slaves))
 	//Create Section for Slaves and Procs
 	nodeNameSlaves := nodeName + "Snames/"
@@ -186,7 +186,7 @@ func (I *Instance) SyncMasters() bool {
 		return false
 	}
 
-	nodeName := etcd.ETC_INST_DIR + "/" + I.Name + "/"
+	nodeName := etcd.ETCD_INSTDIR + "/" + I.Name + "/"
 	Gdb.Set(nodeName+"Masters", fmt.Sprintf("%d", I.Masters))
 	Gdb.Set(nodeName+"Mname", I.Mname)
 	return true
@@ -219,7 +219,6 @@ type Instance_Json struct {
 	Master   *ProcJson
 	Slaves   []*ProcJson
 }
-
 
 //ToJson_Obj Filtered elementes of an Instnace that will be sent as an HTTP response
 func (I *Instance) ToJson_Obj() Instance_Json {
