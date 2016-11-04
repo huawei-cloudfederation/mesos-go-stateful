@@ -1,14 +1,14 @@
 package main
 
 import (
-	"../common/logs"
-	typ "../common/types"
-	"./httplib"
-	"./mesoslib"
-	"encoding/json"
+	"os"
 	"flag"
 	"io/ioutil"
-	"os"
+	"encoding/json"
+	typ "../common/types"
+	"../common/logs"
+	"./httplib"
+	"./mesoslib"
 )
 
 //Declare all the Constants to be used in this file
