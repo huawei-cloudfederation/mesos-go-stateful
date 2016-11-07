@@ -102,7 +102,7 @@ func (S *WorkloadScheduler) ResourceOffers(driver sched.SchedulerDriver, offers 
 				tmpData = []byte(fmt.Sprintf("%d SlaveOf %s", tsk.Mem, tsk.MasterIpPort))
 			}
 
-			if cpus >= tskCPUFloat && mems >= tskMemFloat {
+			if cpus >= tskCPUFloat && mems >= tskMemFloat &&  typ.Agents.Canfit(offer.SlaveId.GetValue(), tsk.Name, tsk.DValue) {
 				tskID := &mesos.TaskID{Value: proto.String(tsk.Taskname)}
 				mesosTsk := &mesos.TaskInfo{
 					Name:     proto.String(tsk.Taskname),
@@ -122,6 +122,7 @@ func (S *WorkloadScheduler) ResourceOffers(driver sched.SchedulerDriver, offers 
 				tskEle = tskEle.Next()
 				typ.OfferList.Remove(currentTask)
 				tasks = append(tasks, mesosTsk)
+				typ.Agents.Add(offer.SlaveId.GetValue(), tsk.Name, 1)
 
 			} else {
 				tskEle = tskEle.Next()
