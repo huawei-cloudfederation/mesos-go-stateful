@@ -17,6 +17,7 @@ func TestMain(M *testing.M) {
 
 }
 
+//Run with correct inputs
 func TestRun(T *testing.T) {
 	var dc Dcontainer
 
@@ -36,6 +37,7 @@ func TestRun(T *testing.T) {
 
 }
 
+//Run with incorrect image name
 func TestRunImagePullFailed(T *testing.T) {
 	var dc Dcontainer
 
@@ -49,6 +51,7 @@ func TestRunImagePullFailed(T *testing.T) {
 
 }
 
+//Run without image name
 func TestRunImagePullError(T *testing.T) {
 	var dc Dcontainer
 
@@ -62,6 +65,7 @@ func TestRunImagePullError(T *testing.T) {
 
 }
 
+//Run without  logfile
 func TestRunLogFileError(T *testing.T) {
 	var dc Dcontainer
 
@@ -80,6 +84,7 @@ func TestRunLogFileError(T *testing.T) {
 
 }
 
+//Run without docker command throws create container error
 func TestRunCreateContainerError(T *testing.T) {
 	var dc Dcontainer
 
@@ -98,6 +103,7 @@ func TestRunCreateContainerError(T *testing.T) {
 
 }
 
+//Run without docker start command throws container start error
 func TestRunStartContainerError(T *testing.T) {
 	var dc Dcontainer
 
@@ -116,6 +122,7 @@ func TestRunStartContainerError(T *testing.T) {
 
 }
 
+//Wait without container id
 func TestWaitWithoutID(T *testing.T) {
 	var dc Dcontainer
 
@@ -128,6 +135,7 @@ func TestWaitWithoutID(T *testing.T) {
 	}
 }
 
+//close with input
 func TestClose(T *testing.T) {
 	var dc Dcontainer
 
@@ -137,6 +145,7 @@ func TestClose(T *testing.T) {
 
 }
 
+//kill without  container id
 func TestKillError(T *testing.T) {
 	var dc Dcontainer
 

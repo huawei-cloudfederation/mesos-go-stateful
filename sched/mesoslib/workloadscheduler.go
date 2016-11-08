@@ -1,17 +1,15 @@
 package mesoslib
 
 import (
+	"../../common/logs"
+	"../../common/store/etcd"
+	typ "../../common/types"
 	"fmt"
-	"time"
-
 	"github.com/gogo/protobuf/proto"
 	mesos "github.com/mesos/mesos-go/mesosproto"
 	util "github.com/mesos/mesos-go/mesosutil"
 	sched "github.com/mesos/mesos-go/scheduler"
-
-	"log"
-	"../../common/types"
-	"../../common/store/etcd"
+	"time"
 )
 
 //WorkloadScheduler scheudler struct
@@ -27,24 +25,24 @@ func NewWorkloadScheduler(exec *mesos.ExecutorInfo) *WorkloadScheduler {
 
 //Registered Scheduler register call back initializes the timestamp and framework id
 func (S *WorkloadScheduler) Registered(driver sched.SchedulerDriver, frameworkID *mesos.FrameworkID, masterInfo *mesos.MasterInfo) {
-	log.Printf("Workload Registered %v", frameworkID)
+	logs.Printf("Workload Registered %v", frameworkID)
 
 	FwIDKey := etcd.ETCD_CONFDIR + "/FrameworkID"
-	types.Gdb.Set(FwIDKey, frameworkID.GetValue())
+	typ.Gdb.Set(FwIDKey, frameworkID.GetValue())
 	FwTstamp := etcd.ETCD_CONFDIR + "/RegisteredAt"
-	types.Gdb.Set(FwTstamp, time.Now().String())
+	typ.Gdb.Set(FwTstamp, time.Now().String())
 }
 
 //Reregistered re-register call back simply updates the timestamp
 func (S *WorkloadScheduler) Reregistered(driver sched.SchedulerDriver, masterInfo *mesos.MasterInfo) {
-	log.Printf("Workload Re-registered")
+	logs.Printf("Workload Re-registered")
 	FwTstamp := etcd.ETCD_CONFDIR + "/RegisteredAt"
-	types.Gdb.Set(FwTstamp, time.Now().String())
+	typ.Gdb.Set(FwTstamp, time.Now().String())
 }
 
 //Disconnected Not implemented call back
 func (S *WorkloadScheduler) Disconnected(sched.SchedulerDriver) {
-	log.Printf("Workload Disconnected")
+	logs.Printf("Workload Disconnected")
 }
 
 //ResourceOffers The moment we recive some offers we loop through the OfferList (container/list)
@@ -52,7 +50,7 @@ func (S *WorkloadScheduler) Disconnected(sched.SchedulerDriver) {
 func (S *WorkloadScheduler) ResourceOffers(driver sched.SchedulerDriver, offers []*mesos.Offer) {
 
 	//No work to do so reject all the offers we just received
-	offerCount := types.OfferList.Len()
+	offerCount := typ.OfferList.Len()
 	if offerCount <= 0 {
 		//Reject the offers nothing to do now
 		ids := make([]*mesos.OfferID, len(offers))
@@ -60,7 +58,7 @@ func (S *WorkloadScheduler) ResourceOffers(driver sched.SchedulerDriver, offers 
 			ids[i] = offer.Id
 		}
 		driver.LaunchTasks(ids, []*mesos.TaskInfo{}, &mesos.Filters{})
-		//log.Printf("No task to peform reject all the offer")
+		//logs.Printf("No task to peform reject all the offer")
 		return
 	}
 
@@ -86,13 +84,13 @@ func (S *WorkloadScheduler) ResourceOffers(driver sched.SchedulerDriver, offers 
 			mems += res.GetScalar().GetValue()
 		}
 
-		log.Printf("Received Offer with CPU=%v MEM=%v OfferID=%v", cpus, mems, offer.Id.GetValue())
+		logs.Printf("Received Offer with CPU=%v MEM=%v OfferID=%v", cpus, mems, offer.Id.GetValue())
 		var tasks []*mesos.TaskInfo
 
 		//Loop through the tasks
-		for tskEle := types.OfferList.Front(); tskEle != nil; {
+		for tskEle := typ.OfferList.Front(); tskEle != nil; {
 
-			tsk := tskEle.Value.(types.Offer)
+			tsk := tskEle.Value.(typ.Offer)
 			tskCPUFloat := float64(tsk.Cpu)
 			tskMemFloat := float64(tsk.Mem)
 
@@ -104,7 +102,7 @@ func (S *WorkloadScheduler) ResourceOffers(driver sched.SchedulerDriver, offers 
 				tmpData = []byte(fmt.Sprintf("%d SlaveOf %s", tsk.Mem, tsk.MasterIpPort))
 			}
 
-			if cpus >= tskCPUFloat && mems >= tskMemFloat {
+			if cpus >= tskCPUFloat && mems >= tskMemFloat &&  typ.Agents.Canfit(offer.SlaveId.GetValue(), tsk.Name, tsk.DValue) {
 				tskID := &mesos.TaskID{Value: proto.String(tsk.Taskname)}
 				mesosTsk := &mesos.TaskInfo{
 					Name:     proto.String(tsk.Taskname),
@@ -122,8 +120,9 @@ func (S *WorkloadScheduler) ResourceOffers(driver sched.SchedulerDriver, offers 
 
 				currentTask := tskEle
 				tskEle = tskEle.Next()
-				types.OfferList.Remove(currentTask)
+				typ.OfferList.Remove(currentTask)
 				tasks = append(tasks, mesosTsk)
+				typ.Agents.Add(offer.SlaveId.GetValue(), tsk.Name, 1)
 
 			} else {
 				tskEle = tskEle.Next()
@@ -131,20 +130,20 @@ func (S *WorkloadScheduler) ResourceOffers(driver sched.SchedulerDriver, offers 
 			//Check if this task is suitable for this offer
 		}
 		driver.LaunchTasks([]*mesos.OfferID{offer.Id}, tasks, &mesos.Filters{})
-		log.Printf("Launched %d tasks from this offer", len(tasks))
+		logs.Printf("Launched %d tasks from this offer", len(tasks))
 	}
-	log.Printf("workload Receives offer")
+	logs.Printf("workload Receives offer")
 }
 
 //StatusUpdate Simply recives the update and passes it to the Maintainer goroutine
 func (S *WorkloadScheduler) StatusUpdate(driver sched.SchedulerDriver, status *mesos.TaskStatus) {
 
-	var ts types.TaskUpdate
+	var ts typ.TaskUpdate
 	ts.Name = status.GetTaskId().GetValue()
 	ts.State = status.GetState().String()
 	ts.Data = status.GetData()
-	log.Printf("workload Task Update received")
-	log.Printf("Status=%v", ts)
+	logs.Printf("workload Task Update received")
+	logs.Printf("Status=%v", ts)
 
 	//Send it across to the channel to maintainer
 	//typ.Mchan <- &ts
@@ -153,25 +152,25 @@ func (S *WorkloadScheduler) StatusUpdate(driver sched.SchedulerDriver, status *m
 
 //OfferRescinded Not implemented
 func (S *WorkloadScheduler) OfferRescinded(_ sched.SchedulerDriver, oid *mesos.OfferID) {
-	log.Printf("offer rescinded: %v", oid)
+	logs.Printf("offer rescinded: %v", oid)
 }
 
 //FrameworkMessage not implemented
 func (S *WorkloadScheduler) FrameworkMessage(_ sched.SchedulerDriver, eid *mesos.ExecutorID, sid *mesos.SlaveID, msg string) {
-	log.Printf("framework message from executor %q slave %q: %q", eid, sid, msg)
+	logs.Printf("framework message from executor %q slave %q: %q", eid, sid, msg)
 }
 
 //SlaveLost Not implemented
 func (S *WorkloadScheduler) SlaveLost(_ sched.SchedulerDriver, sid *mesos.SlaveID) {
-	log.Printf("slave lost: %v", sid)
+	logs.Printf("slave lost: %v", sid)
 }
 
 //ExecutorLost Not implemented
 func (S *WorkloadScheduler) ExecutorLost(_ sched.SchedulerDriver, eid *mesos.ExecutorID, sid *mesos.SlaveID, code int) {
-	log.Printf("executor %q lost on slave %q code %d", eid, sid, code)
+	logs.Printf("executor %q lost on slave %q code %d", eid, sid, code)
 }
 
 //Error Not implemeted
 func (S *WorkloadScheduler) Error(_ sched.SchedulerDriver, err string) {
-	log.Printf("Scheduler received error:%v", err)
+	logs.Printf("Scheduler received error:%v", err)
 }

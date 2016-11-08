@@ -1,22 +1,19 @@
 package mesoslib
 
 import (
+	"../../common/logs"
+	"../../common/store/etcd"
+	typ "../../common/types"
 	"fmt"
+	"github.com/gogo/protobuf/proto"
+	mesos "github.com/mesos/mesos-go/mesosproto"
+	util "github.com/mesos/mesos-go/mesosutil"
+	sched "github.com/mesos/mesos-go/scheduler"
 	"net"
 	"net/http"
 	"os"
 	"strings"
 	"time"
-
-	"log"
-	"github.com/gogo/protobuf/proto"
-	mesos "github.com/mesos/mesos-go/mesosproto"
-	util "github.com/mesos/mesos-go/mesosutil"
-	sched "github.com/mesos/mesos-go/scheduler"
-
-//	"../../common/log"
-	"../../common/types"
-	"../../common/store/etcd"
 )
 
 func serveExecutorArtifact(path string, IP, Port string) (*string, string) {
@@ -37,7 +34,7 @@ func serveExecutorArtifact(path string, IP, Port string) (*string, string) {
 	serveFile("/"+base, path)
 
 	hostURI := fmt.Sprintf("http://%s:%s/%s", IP, Port, base)
-	log.Printf("Hosting artifact '%s' at '%s'", path, hostURI)
+	logs.Printf("Hosting artifact '%s' at '%s'", path, hostURI)
 
 	return &hostURI, base
 }
@@ -59,17 +56,17 @@ func prepareExecutorInfo(IP, Port, executorPath, Image, DbType, DbEndPoint strin
 			hostIP = IP
 		}
 
-		log.Printf("hostIP = %s going to listen and serve", hostIP)
+		logs.Printf("hostIP = %s going to listen and serve", hostIP)
 
 		err := http.ListenAndServe(fmt.Sprintf("%s:%s", hostIP, Port), nil)
-		log.Printf("Serving executor artifacts... error = %v", err)
+		logs.Printf("Serving executor artifacts... error = %v", err)
 	}(IP, Port)
 
 	// Create mesos scheduler driver.
 	return &mesos.ExecutorInfo{
 		ExecutorId: util.NewExecutorID("default"),
 		Name:       proto.String("WorkloadExecutor"),
-		Source:     proto.String("MrRedis"),
+		Source:     proto.String("Workload"),
 		Command: &mesos.CommandInfo{
 			Value: proto.String(executorCommand),
 			Uris:  executorUris,
@@ -77,7 +74,7 @@ func prepareExecutorInfo(IP, Port, executorPath, Image, DbType, DbEndPoint strin
 	}
 }
 
-// Mesos library will recive a string comman separated with values that it needs to run with
+// Mesos library will recive a string comma separated with values that it needs to run with
 // this function should parse those comma separated values and supply it to mesos-library
 // format config = "MasterIP","currentServerIP","MasterPort","currentServerPort"
 // MasterIP/Port = Mesos Master ip or port
@@ -122,16 +119,16 @@ func parseIP(address string) net.IP {
 	}
 	addr, err := net.LookupIP(hostIP)
 	if err != nil {
-		log.Fatal(err)
+		logs.Fatal(err)
 	}
 	if len(addr) < 1 {
-		log.Fatalf("failed to parse IP from address '%v'", address)
+		logs.FatalInfo("failed to parse IP from address '%v'", address)
 	}
 	return addr[0]
 }
 
-//FailoverTime Frameowkr and its task will be terminated if the framework is not started in 60 secons
-const FailoverTime = 10
+//FailoverTime Framework and its task will be terminated if the framework is not started in 60 seconds
+const FailoverTime = 60
 
 //TimeFormat we need to parse the Timestamp
 const TimeFormat = "2006-01-02 15:04:05.999999999 -0700 MST"
@@ -140,18 +137,18 @@ const TimeFormat = "2006-01-02 15:04:05.999999999 -0700 MST"
 func GetFrameWorkID() (string, float64) {
 
 	fTimout := float64(FailoverTime)
-	fwTStamp, terr := types.Gdb.Get(etcd.ETCD_CONFDIR + "/RegisteredAt")
+	fwTStamp, terr := typ.Gdb.Get(etcd.ETCD_CONFDIR + "/RegisteredAt")
 	t, tperr := time.Parse(TimeFormat, fwTStamp)
-	fwID, err := types.Gdb.Get(etcd.ETCD_CONFDIR + "/FrameworkID")
+	fwID, err := typ.Gdb.Get(etcd.ETCD_CONFDIR + "/FrameworkID")
 
-	log.Println("framework id is ",fwID,etcd.ETCD_CONFDIR)
+	logs.Println("framework id is ", fwID, etcd.ETCD_CONFDIR)
 	if err != nil || terr != nil || tperr != nil {
-		log.Printf("Not registered previously")
+		logs.Printf("Not registered previously")
 		return "", fTimout
 	}
 
 	deltaT := time.Now().Sub(t)
-	log.Printf("Delta of the previously registered framework is = %v", deltaT)
+	logs.Printf("Delta of the previously registered framework is = %v", deltaT)
 
 	if (deltaT / time.Second) < FailoverTime {
 		return fwID, fTimout
@@ -196,17 +193,17 @@ func Run(MasterEndPoint, ServerIP, ServerPort, executorPath, Image, DbType, DbEn
 	driver, err := sched.NewMesosSchedulerDriver(schedConfig)
 
 	if err != nil {
-		log.Fatalf("Framework is not created error %v", err)
+		logs.FatalInfo("Framework is not created error %v", err)
 	}
 
-	log.Printf("The Framework ID is %v and %v", fwinfo.Id, schedConfig.Framework.Id)
+	logs.Printf("The Framework ID is %v and %v", fwinfo.Id, schedConfig.Framework.Id)
 
 	status, err := driver.Run()
 
 	if err != nil {
-		log.Fatalf("Framework Run() error %v", err)
+		logs.FatalInfo("Framework Run() error %v", err)
 	}
 
-	log.Printf("Framework Terminated with status %v", status.String())
+	logs.Printf("Framework Terminated with status %v", status.String())
 
 }

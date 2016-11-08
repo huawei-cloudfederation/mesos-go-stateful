@@ -1,15 +1,14 @@
 package main
 
 import (
-//	"../common/log"
-	"../common/types"
-	"./httplib"
-	"./mesoslib"
-	"encoding/json"
+	"os"
 	"flag"
 	"io/ioutil"
-	"log"
-	"os"
+	"encoding/json"
+	typ "../common/types"
+	"../common/logs"
+	"./httplib"
+	"./mesoslib"
 )
 
 //Declare all the Constants to be used in this file
@@ -60,27 +59,27 @@ func main() {
 	if *dumpConfig == true {
 		configBytes, err := json.MarshalIndent(Cfg, " ", "  ")
 		if err != nil {
-			log.Printf("Error marshalling the dummy config file. Exiting %v", err)
+			logs.Printf("Error marshalling the dummy config file. Exiting %v", err)
 			return
 		}
-		log.Printf("%s\n", string(configBytes))
+		logs.Printf("%s\n", string(configBytes))
 		return
 	}
 
 	cfgFile, err := ioutil.ReadFile(*cfgFileName)
 
 	if err != nil {
-		log.Printf("Error Reading the configration file. Resorting to default values")
+		logs.Printf("Error Reading the configration file. Resorting to default values")
 	}
 	err = json.Unmarshal(cfgFile, &Cfg)
 	if err != nil {
-		log.Fatalf("Error parsing the config file %v", err)
+		logs.FatalInfo("Error parsing the config file %v", err)
 	}
-	log.Printf("Configuration file is = %v", Cfg)
+	logs.Printf("Configuration file is = %v", Cfg)
 
-	log.Printf("*****************************************************************")
-	log.Printf("*********************Starting Workload-Scheduler******************")
-	log.Printf("*****************************************************************")
+	logs.Printf("*****************************************************************")
+	logs.Printf("*********************Starting Workload-Scheduler******************")
+	logs.Printf("*****************************************************************")
 	//Command line argument parsing
 
 	//Facility to overwrite the etcd endpoint for scheduler if its running in the same docker container and expose a different one for executors
@@ -92,20 +91,19 @@ func main() {
 	}
 
 	//Initalize the common entities like store, store configuration etc.
-	isInit, err := types.Initialize(Cfg.DBType, dbEndpoint)
+	isInit, err := typ.Initialize(Cfg.DBType, dbEndpoint)
 	if err != nil || isInit != true {
-		log.Fatalf("Failed to intialize Error:%v return %v", err, isInit)
+		logs.FatalInfo("Failed to intialize Error:%v return %v", err, isInit)
 	}
 
 	//Start the Mesos library
 	go mesoslib.Run(Cfg.Master, Cfg.ArtifactIP, Cfg.ArtifactPort, Cfg.ExecutorPath, Cfg.Image, Cfg.DBType, Cfg.DBEndPoint, Cfg.FrameworkName, Cfg.UserName)
 
-
 	//start http server
 	httplib.Run(Cfg.HTTPPort)
 
-	log.Printf("*****************************************************************")
-	log.Printf("*********************Finished Workload-Scheduler******************")
-	log.Printf("*****************************************************************")
+	logs.Printf("*****************************************************************")
+	logs.Printf("*********************Finished Workload-Scheduler******************")
+	logs.Printf("*****************************************************************")
 
 }

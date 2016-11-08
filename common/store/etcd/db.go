@@ -8,8 +8,8 @@ import (
 	"golang.org/x/net/context"
 )
 
-var   ETCD_BASEDIR ,ETCD_INSTDIR ,ETCD_CONFDIR string 
-
+//gloabal variable for etcd
+var ETCD_BASEDIR, ETCD_INSTDIR, ETCD_CONFDIR string
 
 type etcdDB struct {
 	C       cli.Client      //The client context
@@ -70,14 +70,14 @@ func (db *etcdDB) Setup(config string) error {
 	}
 
 	ETCD_INSTDIR = ETCD_BASEDIR + "/Instances"
-	db.InstDir = db.BaseDir + "/instance"
+	db.InstDir = ETCD_INSTDIR
 	err = db.CreateSection(db.InstDir)
 	if err != nil && strings.Contains(err.Error(), "Key already exists") != true {
 		return err
 	}
 
 	ETCD_CONFDIR = ETCD_BASEDIR + "/Config"
-	db.ConfDir = db.BaseDir + "/config"
+	db.ConfDir = ETCD_CONFDIR
 	err = db.CreateSection(db.ConfDir)
 	if err != nil && strings.Contains(err.Error(), "Key already exists") != true {
 		return err

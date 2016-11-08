@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"log"
+	"../logs"
 	"../store/etcd"
 )
 
@@ -24,14 +24,13 @@ type Proc struct {
 	ID       string //UUID that was generated for this PROC
 	State    string //Current state of the process Active/Dead/Crashed etc.,
 	Type     string //Type of the PROC master/Slave etc.,
-	SlaveOf  string //Slave of which redis master
+	SlaveOf  string //Slave of which workload master
 	Stats    string //All other statistics apart from Memory usage to be stored as a json/string
 	Msg      string //Message we will revive fromt he scheduler and action to be taken on it
 	IP       string //IP address of the slave at which this worklaod proc is running
 	Port     string //Port number at which this PROC is bound to
 	EID      string //Executor ID of this PROC  .. Just in case we need to send a workload messsage
 	SID      string //Slave ID of this PROC .. Just in case we need to send a workload message
-	//cli    redis.Cli
 }
 
 //Stats the whole stats structure could be a json structure reflecting all the fields what worklaod info returns
@@ -63,7 +62,7 @@ func NewProc(TskName string, Capacity int, Type string, SlaveOf string) *Proc {
 	if len(Tids) != 2 {
 		//Something wrong the TaskID should be of the format <InstanceName>::<UUID of the PROC>
 		//Throw an error and ignore
-		log.Printf("Wrong format Task Name %s", TskName)
+		logs.Printf("Wrong format Task Name %s", TskName)
 		return nil
 	}
 
@@ -85,7 +84,7 @@ func LoadProc(TskName string) *Proc {
 	Tids := strings.Split(TskName, "::")
 
 	if len(Tids) != 2 {
-		log.Printf("Proc.Load() Wrong format Task Name %s", TskName)
+		logs.Printf("Proc.Load() Wrong format Task Name %s", TskName)
 		return nil
 	}
 
@@ -109,7 +108,7 @@ func (P *Proc) Load() bool {
 	}
 
 	if ok, _ := Gdb.IsKey(P.Nodename); !ok {
-		log.Printf("Invalid Key %v, Cannot load", P.Nodename)
+		logs.Printf("Invalid Key %v, Cannot load", P.Nodename)
 		return false
 	}
 
@@ -134,7 +133,7 @@ func (P *Proc) Load() bool {
 	P.SlaveOf, err = Gdb.Get(P.Nodename + "/SlaveOf")
 
 	if err != nil {
-		log.Printf("Error occured %v", err)
+		logs.Printf("Error occured %v", err)
 		return false
 	}
 
@@ -180,7 +179,7 @@ func (P *Proc) SyncStats(s Stats) bool {
 	sBytes, err := json.Marshal(s)
 
 	if err != nil {
-		log.Printf("SyncStats() unbale to marshal error %v", err)
+		logs.Printf("SyncStats() unbale to marshal error %v", err)
 		return false
 	}
 
@@ -231,14 +230,14 @@ func (P *Proc) LoadStats() *Stats {
 	P.Stats, err = Gdb.Get(P.Nodename + "/Stats")
 
 	if err != nil {
-		log.Printf("Error occured %v", err)
+		logs.Printf("Error occured %v", err)
 		return nil
 	}
 
 	err = json.Unmarshal([]byte(P.Stats), &s)
 
 	if err != nil {
-		log.Printf("Error occured un-marshalling stats LoadStats() %v stats=%s", err, P.Stats)
+		logs.Printf("Error occured un-marshalling stats LoadStats() %v stats=%s", err, P.Stats)
 		return nil
 	}
 	return &s
@@ -252,7 +251,7 @@ func (P *Proc) LoadType() bool {
 	}
 	P.Type, err = Gdb.Get(P.Nodename + "/Type")
 	if err != nil {
-		log.Printf("Error occured %v", err)
+		logs.Printf("Error occured %v", err)
 		return false
 	}
 	return true
@@ -267,7 +266,7 @@ func (P *Proc) LoadMsg() bool {
 
 	P.Msg, err = Gdb.Get(P.Nodename + "/Msg")
 	if err != nil {
-		log.Printf("Error occured %v", err)
+		logs.Printf("Error occured %v", err)
 		return false
 	}
 
