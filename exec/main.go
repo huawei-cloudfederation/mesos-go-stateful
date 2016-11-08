@@ -11,6 +11,7 @@ import (
 	exec "github.com/mesos/mesos-go/executor"
 	mesos "github.com/mesos/mesos-go/mesosproto"
 
+	"../common/logs"
 	typ "../common/types"
 	"./TaskMon"
 )
@@ -40,7 +41,7 @@ func GetLocalIP() string {
 		address := net.ParseIP(libprocessIP)
 		if address != nil {
 			//If its a valid IP address return the string
-			log.Printf("LibProess IP = %s", libprocessIP)
+			logs.Printf("LibProess IP = %s", libprocessIP)
 			return libprocessIP
 		}
 
@@ -54,7 +55,7 @@ func GetLocalIP() string {
 		// check the address type and if it is not a loopback the display it
 		if ipnet, ok := address.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
 			if ipnet.IP.To4() != nil {
-				log.Printf("InterfaceAddress = %s", ipnet.IP.String())
+				logs.Printf("InterfaceAddress = %s", ipnet.IP.String())
 				return ipnet.IP.String()
 			}
 		}
@@ -69,28 +70,28 @@ func NewWorkloadExecutor() *WorkloadExecutor {
 
 //Registered Call back for registered driver
 func (exec *WorkloadExecutor) Registered(driver exec.ExecutorDriver, execInfo *mesos.ExecutorInfo, fwinfo *mesos.FrameworkInfo, slaveInfo *mesos.SlaveInfo) {
-	log.Println("Registered Executor on slave ") //, slaveInfo.GetHostname())
+	logs.Println("Registered Executor on slave ") //, slaveInfo.GetHostname())
 }
 
 //Reregistered call back for the re-registered driver
 func (exec *WorkloadExecutor) Reregistered(driver exec.ExecutorDriver, slaveInfo *mesos.SlaveInfo) {
-	log.Println("Re-registered Executor on slave ") //, slaveInfo.GetHostname())
+	logs.Println("Re-registered Executor on slave ") //, slaveInfo.GetHostname())
 }
 
 //Disconnected Call back for disconnected
 func (exec *WorkloadExecutor) Disconnected(exec.ExecutorDriver) {
-	log.Println("Executor disconnected.")
+	logs.Println("Executor disconnected.")
 }
 
 //LaunchTask Call back implementation when a Launch task request comes from Slave/Agent
 func (exec *WorkloadExecutor) LaunchTask(driver exec.ExecutorDriver, taskInfo *mesos.TaskInfo) {
-	log.Println("Launching task", taskInfo.GetName(), "with command", taskInfo.Command.GetValue())
+	logs.Println("Launching task", taskInfo.GetName(), "with command", taskInfo.Command.GetValue())
 
 	var runStatus *mesos.TaskStatus
 	exec.tasksLaunched++
 	M := TaskMon.NewTaskMon(taskInfo.GetTaskId().GetValue(), exec.HostIP, exec.tasksLaunched+6379, string(taskInfo.Data), WorkloadLogger, *Image)
 
-	log.Printf("The Taskmon object = %v\n", *M)
+	logs.Printf("The Taskmon object = %v\n", *M)
 
 	tid := taskInfo.GetTaskId().GetValue()
 	exec.monMap[tid] = M
@@ -109,10 +110,10 @@ func (exec *WorkloadExecutor) LaunchTask(driver exec.ExecutorDriver, taskInfo *m
 		}
 		_, err := driver.SendStatusUpdate(runStatus)
 		if err != nil {
-			log.Println("Got error", err)
+			logs.Println("Got error", err)
 		}
 
-		log.Println("Total tasks launched ", exec.tasksLaunched)
+		logs.Println("Total tasks launched ", exec.tasksLaunched)
 
 		//our server is now running, lets start monitoring it also
 		go func() {
@@ -130,16 +131,16 @@ func (exec *WorkloadExecutor) LaunchTask(driver exec.ExecutorDriver, taskInfo *m
 		}
 
 		// finish task
-		log.Println("Finishing task", taskInfo.GetName())
+		logs.Println("Finishing task", taskInfo.GetName())
 		finStatus := &mesos.TaskStatus{
 			TaskId: taskInfo.GetTaskId(),
 			State:  exitState,
 		}
 		_, err = driver.SendStatusUpdate(finStatus)
 		if err != nil {
-			log.Println("Got error", err)
+			logs.Println("Got error", err)
 		}
-		log.Println("Task finished", taskInfo.GetName())
+		logs.Println("Task finished", taskInfo.GetName())
 	}()
 }
 
@@ -149,23 +150,23 @@ func (exec *WorkloadExecutor) KillTask(driver exec.ExecutorDriver, taskID *mesos
 	//tbd: is there any error check needed
 	exec.monMap[tid].Die()
 
-	log.Println("Killed task with task id:", tid)
+	logs.Println("Killed task with task id:", tid)
 }
 
 //FrameworkMessage Any message sent from the scheduelr , not sued for this project
 func (exec *WorkloadExecutor) FrameworkMessage(driver exec.ExecutorDriver, msg string) {
-	log.Println("Got framework message: ", msg)
+	logs.Println("Got framework message: ", msg)
 }
 
 //Shutdown Not implemented yet
 func (exec *WorkloadExecutor) Shutdown(exec.ExecutorDriver) {
-	log.Println("Shutting down the executor")
-	log.Printf("Killing all the containers")
+	logs.Println("Shutting down the executor")
+	logs.Printf("Killing all the containers")
 }
 
 //Error not implemented yet
 func (exec *WorkloadExecutor) Error(driver exec.ExecutorDriver, err string) {
-	log.Println("Got error message:", err)
+	logs.Println("Got error message:", err)
 }
 
 // -------------------------- func inits () ----------------- //
@@ -174,7 +175,7 @@ func init() {
 }
 
 func main() {
-	log.Println("Starting Workload Executor")
+	logs.Println("Starting Workload Executor")
 
 	typ.Initialize(*DbType, *DbEndPoint)
 
@@ -196,22 +197,22 @@ func main() {
 	driver, err := exec.NewMesosExecutorDriver(dconfig)
 
 	if err != nil {
-		log.Println("Unable to create a ExecutorDriver ", err.Error())
+		logs.Println("Unable to create a ExecutorDriver ", err.Error())
 	}
 
 	_, err = driver.Start()
 	if err != nil {
-		log.Println("Got error:", err)
+		logs.Println("Got error:", err)
 		return
 	}
-	log.Println("Executor process has started and running.")
+	logs.Println("Executor process has started and running.")
 	_, err = driver.Join()
 	if err != nil {
-		log.Println("driver failed:", err)
+		logs.Println("driver failed:", err)
 	}
-	log.Println("Executor Finished, Delete all the containers")
+	logs.Println("Executor Finished, Delete all the containers")
 	for _, M := range WorkloadExec.monMap {
 		M.Die()
 	}
-	log.Println("executor terminated")
+	logs.Println("executor terminated")
 }

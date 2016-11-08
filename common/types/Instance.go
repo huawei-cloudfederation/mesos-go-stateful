@@ -2,11 +2,11 @@ package types
 
 import (
 	"encoding/json"
+	"fmt"
 	"path/filepath"
 	"strconv"
 
-	"fmt"
-	"log"
+	"../logs"
 	"../store/etcd"
 )
 
@@ -20,7 +20,7 @@ type Instance struct {
 	ExpMasters int              //Expected number of Masters
 	ExpSlaves  int              //Expected number of Slaves
 	Status     string           //Status of this instance "CREATING/RUNNING/DISABLED"
-	Mname      string           //Name / task id of the master redis proc
+	Mname      string           //Name / task id of the master workload proc
 	Snames     []string         //Name of the slave
 	Procs      map[string]*Proc //An array of workload procs to be filled later
 }
@@ -87,7 +87,7 @@ func (I *Instance) Load() bool {
 	nodeNameSlaves := nodeName + "Snames/"
 	SnamesKey, err = Gdb.ListSection(nodeNameSlaves, false)
 	if err != nil {
-		log.Printf("The error value is %v", err)
+		logs.Printf("The error value is %v", err)
 	}
 
 	for _, snamekey := range SnamesKey {
@@ -179,7 +179,7 @@ func (I *Instance) SyncSlaves() bool {
 	return true
 }
 
-//SyncMasters Flushes only the master attribute to the DB, used when a new redis master is choose.
+//SyncMasters Flushes only the master attribute to the DB, used when a new workload master is choose.
 func (I *Instance) SyncMasters() bool {
 
 	if Gdb.IsSetup() != true {
@@ -202,7 +202,7 @@ func (I *Instance) LoadProcs() bool {
 	I.Procs[I.Mname] = LoadProc(I.Name + "::" + I.Mname)
 
 	for _, n := range I.Snames {
-		log.Printf("Laoding proc key=%v ", n)
+		logs.Printf("Laoding proc key=%v ", n)
 		I.Procs[n] = LoadProc(I.Name + "::" + n)
 	}
 

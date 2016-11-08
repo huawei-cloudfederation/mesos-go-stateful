@@ -3,6 +3,7 @@ package types
 import (
 	"container/list"
 
+	 "../agentstate"
 	"../store"
 )
 
@@ -14,6 +15,7 @@ var (
 	Cchan     chan TaskCreate  //Channel for Creator
 	Mchan     chan *TaskUpdate //Channel for Maintainer
 	Dchan     chan TaskMsg     //Channel for Destroyer
+	Agents    *agentstate.State //A Global View of aggents and the Instnaces book keeping
 )
 
 //Global constants for Instance Status

@@ -2,15 +2,13 @@ package etcd
 
 import (
 	"fmt"
+	cli "github.com/coreos/etcd/client"
+	"golang.org/x/net/context"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
-
 	"time"
-
-	cli "github.com/coreos/etcd/client"
-	"golang.org/x/net/context"
 )
 
 func TestMain(M *testing.M) {
@@ -20,8 +18,10 @@ func TestMain(M *testing.M) {
 
 }
 
+//new with input
 func TestNew(T *testing.T) {
 	var db etcdDB
+
 	New()
 
 	if db.isSetup != false {
@@ -68,6 +68,7 @@ func TestLogWithoutEndPoint(T *testing.T) {
 
 }
 
+//setup with correct config values
 func TestSetUpWithConfig(T *testing.T) {
 	var db etcdDB
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -84,6 +85,7 @@ func TestSetUpWithConfig(T *testing.T) {
 	db.Setup(config)
 }
 
+//setup without  config values
 func TestSetUpWithoutConfig(T *testing.T) {
 
 	var db etcdDB
@@ -97,8 +99,6 @@ func TestSetUpWithoutConfig(T *testing.T) {
 
 	err := db.Setup(config)
 
-	fmt.Println(err)
-
 	if err != nil && !strings.Contains(err.Error(), "response is invalid json. The endpoint is probably not valid etcd cluster endpoint") {
 		//If its some other error then fail
 		T.Fail()
@@ -106,6 +106,7 @@ func TestSetUpWithoutConfig(T *testing.T) {
 
 }
 
+//issetup with input
 func TestIsSetup(T *testing.T) {
 
 	var db etcdDB
@@ -117,6 +118,7 @@ func TestIsSetup(T *testing.T) {
 	}
 }
 
+//createsection inside etcd with key
 func TestCreateSectionWithKey(T *testing.T) {
 
 	var db etcdDB
@@ -147,6 +149,7 @@ func TestCreateSectionWithKey(T *testing.T) {
 	}
 }
 
+//createsection without key
 func TestCreateSectionWithoutKey(T *testing.T) {
 
 	var db etcdDB
@@ -178,6 +181,7 @@ func TestCreateSectionWithoutKey(T *testing.T) {
 	}
 }
 
+//set with key
 func TestSetWithKey(T *testing.T) {
 
 	var db etcdDB
@@ -209,6 +213,7 @@ func TestSetWithKey(T *testing.T) {
 
 }
 
+//set without key
 func TestSetWithoutKey(T *testing.T) {
 
 	var db etcdDB
@@ -234,13 +239,13 @@ func TestSetWithoutKey(T *testing.T) {
 
 	err := db.Set("", "Hello")
 
-	fmt.Println(err)
 	if err != nil && !strings.Contains(err.Error(), "response is invalid json. The endpoint is probably not valid etcd cluster endpoint") {
 		//If its some other error then fail
 		T.Fail()
 	}
 }
 
+//get with valid config
 func TestGetValidConfig(T *testing.T) {
 
 	var db etcdDB
@@ -268,6 +273,7 @@ func TestGetValidConfig(T *testing.T) {
 
 }
 
+//get without key
 func TestGetWithoutKey(T *testing.T) {
 
 	var db etcdDB
@@ -299,6 +305,7 @@ func TestGetWithoutKey(T *testing.T) {
 	}
 }
 
+//isDir with correct input
 func TestIsDir(T *testing.T) {
 
 	var db etcdDB
@@ -326,6 +333,7 @@ func TestIsDir(T *testing.T) {
 
 }
 
+//isDir without key
 func TestIsDirWithoutKey(T *testing.T) {
 
 	var db etcdDB
@@ -358,6 +366,7 @@ func TestIsDirWithoutKey(T *testing.T) {
 
 }
 
+//IsKey with correct key
 func TestIsKey(T *testing.T) {
 
 	var db etcdDB
@@ -385,6 +394,7 @@ func TestIsKey(T *testing.T) {
 
 }
 
+//IsKey without key
 func TestIsKeyWithoutKey(T *testing.T) {
 
 	var db etcdDB
@@ -417,6 +427,7 @@ func TestIsKeyWithoutKey(T *testing.T) {
 
 }
 
+//update with correct key
 func TestUpdate(T *testing.T) {
 	var db etcdDB
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -446,6 +457,7 @@ func TestUpdate(T *testing.T) {
 
 }
 
+//update without key
 func TestUpdateWithoutKey(T *testing.T) {
 	var db etcdDB
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -475,6 +487,7 @@ func TestUpdateWithoutKey(T *testing.T) {
 	}
 }
 
+//delete section inside etcd without key
 func TestDeleteSectionWithoutKey(T *testing.T) {
 
 	var db etcdDB
@@ -506,6 +519,7 @@ func TestDeleteSectionWithoutKey(T *testing.T) {
 	}
 }
 
+//delete with key
 func TestDel(T *testing.T) {
 
 	var db etcdDB
@@ -533,6 +547,7 @@ func TestDel(T *testing.T) {
 
 }
 
+//delete without key
 func TestDelWithoutKey(T *testing.T) {
 
 	var db etcdDB
@@ -564,6 +579,7 @@ func TestDelWithoutKey(T *testing.T) {
 	}
 }
 
+//list section with key
 func TestListSection(T *testing.T) {
 
 	var db etcdDB
@@ -591,6 +607,7 @@ func TestListSection(T *testing.T) {
 
 }
 
+//list section without key
 func TestListSectionWithoutKey(T *testing.T) {
 
 	var db etcdDB
@@ -622,6 +639,7 @@ func TestListSectionWithoutKey(T *testing.T) {
 	}
 }
 
+//test clean slate without baseDir
 func TestCleanSlateWithoutBaseDir(T *testing.T) {
 
 	var db etcdDB
