@@ -3,10 +3,10 @@ package types
 import (
 	"container/list"
 
-	"../logs"
-	"../store/etcd"
-	"../store/zookeeper"
-	"../agentstate"
+	"github.com/huawei-cloudfederation/mesos-go-stateful/common/agentstate"
+	"github.com/huawei-cloudfederation/mesos-go-stateful/common/logs"
+	"github.com/huawei-cloudfederation/mesos-go-stateful/common/store/etcd"
+	"github.com/huawei-cloudfederation/mesos-go-stateful/common/store/zookeeper"
 )
 
 //Initialize Initialize all the data strucutres in common package, should be called by the main program only and should be called only once per program

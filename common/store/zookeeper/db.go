@@ -4,7 +4,7 @@ import (
 	"strings"
 	"time"
 
-	"../../logs"
+	"github.com/huawei-cloudfederation/mesos-go-stateful/common/logs"
 	"github.com/samuel/go-zookeeper/zk"
 )
 

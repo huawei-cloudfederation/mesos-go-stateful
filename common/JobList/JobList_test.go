@@ -1,10 +1,10 @@
 package JobList
 
 import (
-	"fmt"
 	"testing"
+	"time"
 
-	"../types"
+	"github.com/huawei-cloudfederation/mesos-go-stateful/common/types"
 )
 
 var JB *JobList
@@ -38,29 +38,39 @@ func TestMonitor(t *testing.T) {
 
 	NewEvent := func() bool {
 		NewFlag = true
+		return true
 	}
 	EmptyEvent := func() bool {
 		EmptyFlag = true
+		return true
 	}
 
 	go JB.EventHandler(NewEvent, EmptyEvent, time.Second)
+	time.Sleep(time.Microsecond * 100)
 
 	JB.EnQ(&types.Instance{})
 
+	time.Sleep(time.Microsecond * 100)
+
 	if NewFlag == false {
+		t.Logf("value NewFlag =%v Should be =true", NewFlag)
 		t.Fail()
 	}
 
-	I := JB.DeQ()
+	JB.DeQ()
+
+	time.Sleep(time.Microsecond * 100)
 
 	if EmptyFlag == true {
 		//Should happen only after one second
+		t.Logf("Before Frequency value EmptyFlag =%v Should be =false", EmptyFlag)
 		t.Fail()
 	}
 
 	time.Sleep(time.Second)
 
 	if EmptyFlag == false {
+		t.Logf("After Frequency value EmptyFlag =%v Should be =true", EmptyFlag)
 		t.Fail()
 	}
 

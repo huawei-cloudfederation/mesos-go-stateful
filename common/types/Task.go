@@ -6,8 +6,8 @@ import (
 	"strconv"
 	"strings"
 
-	"../logs"
-	"../store/etcd"
+	"github.com/huawei-cloudfederation/mesos-go-stateful/common/logs"
+	"github.com/huawei-cloudfederation/mesos-go-stateful/common/store/etcd"
 )
 
 //Task A standalone task KV store is usually started in any slave (Linux) like below

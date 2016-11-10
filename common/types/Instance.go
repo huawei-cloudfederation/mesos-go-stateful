@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"strconv"
 
-	"../logs"
-	"../store/etcd"
+	"github.com/huawei-cloudfederation/mesos-go-stateful/common/logs"
+	"github.com/huawei-cloudfederation/mesos-go-stateful/common/store/etcd"
 )
 
 //A Instance structure that will be able to store a tree of data, Everything related to a workload intance

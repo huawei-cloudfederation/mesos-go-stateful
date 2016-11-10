@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"../types"
+	"github.com/huawei-cloudfederation/mesos-go-stateful/common/types"
 )
 
 type JobList struct {
@@ -31,7 +31,6 @@ func (JB *JobList) EnQ(I *types.Instance) bool {
 	JB.Q.PushBack(I)
 
 	if JB.Len() == 1 && JB.IsMonitor {
-
 		JB.NewCh <- true
 	}
 
@@ -49,16 +48,20 @@ func (JB *JobList) DeQ() *types.Instance {
 		JB.EmptyCh <- true
 	}
 
-	return JB.Q.Remove(front).Value.(*types.Instance)
+	I := front.Value.(*types.Instance)
+
+	JB.Q.Remove(front)
+
+	return I
 }
 
-func (JB *JobList) Len() { return JB.Q.Len() }
+func (JB *JobList) Len() int { return JB.Q.Len() }
 
 //EventHandler This should be started as a goroutine, it takes two function pointers as argumetns
 // When the JobList is new and an entry is made it calls NewEvent,
 //When the JobList becomes empty then it automatically calls the EmptyEvent after 5 seconds
 //This is useful to call Supress and Unsuppress framework messages
-func (JB *JObList) EventHandler(NewEvent func() bool, EmptyEvent func() bool, Frequency time.Duration) {
+func (JB *JobList) EventHandler(NewEvent func() bool, EmptyEvent func() bool, Frequency time.Duration) {
 
 	JB.IsMonitor = true
 	timeoutCh := time.After(Frequency)
