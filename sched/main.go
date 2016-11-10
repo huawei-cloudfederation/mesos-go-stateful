@@ -17,47 +17,16 @@ const (
 	HTTP_SERVER_PORT = "8080"
 )
 
-type Config struct {
-	UserName      string //Supply a username
-	FrameworkName string //Supply a frameworkname
-	Master        string //MesosMaster's endpoint zk://mesos.master/2181 or 10.11.12.13:5050
-	ExecutorPath  string //Executor's Path from where to distribute
-	Image         string // Image should be downloaded
-	DBType        string //Type of the database etcd/zk/mysql/consul etcd.,
-	DBEndPoint    string //Endpoint of the database
-	LogFile       string //Name of the logfile
-	ArtifactIP    string //The IP to which we should bind to for distributing the executor among the interfaces
-	ArtifactPort  string //The port to which we should bind to for distributing the executor
-	HTTPPort      string //Defaults to 8080 if otherwise specify explicitly
-}
-
-//NewDefaultConfig Default Constructor to create a config file
-func NewDefaultConfig() Config {
-	return Config{
-		UserName:      "ubuntu",
-		FrameworkName: "MrRedis",
-		Master:        "127.0.0.1:5050",
-		ExecutorPath:  "./WorkloadExecutor",
-		Image:         "redis:3.0-alpine",
-		DBType:        "etcd",
-		DBEndPoint:    "127.0.0.1:2379",
-		LogFile:       "stderr",
-		ArtifactIP:    "127.0.0.1",
-		ArtifactPort:  "5454",
-		HTTPPort:      "5656",
-	}
-}
-
 func main() {
 
 	cfgFileName := flag.String("config", "./config.json", "Supply the location of configuration file")
 	dumpConfig := flag.Bool("DumpEmptyConfig", false, "Dump Empty Config file")
 	flag.Parse()
 
-	Cfg := NewDefaultConfig()
+	cfg := typ.NewDefaultConfig()
 
 	if *dumpConfig == true {
-		configBytes, err := json.MarshalIndent(Cfg, " ", "  ")
+		configBytes, err := json.MarshalIndent(cfg, " ", "  ")
 		if err != nil {
 			logs.Printf("Error marshalling the dummy config file. Exiting %v", err)
 			return
@@ -71,11 +40,11 @@ func main() {
 	if err != nil {
 		logs.Printf("Error Reading the configration file. Resorting to default values")
 	}
-	err = json.Unmarshal(cfgFile, &Cfg)
+	err = json.Unmarshal(cfgFile, &cfg)
 	if err != nil {
 		logs.FatalInfo("Error parsing the config file %v", err)
 	}
-	logs.Printf("Configuration file is = %v", Cfg)
+	logs.Printf("Configuration file is = %v", cfg)
 
 	logs.Printf("*****************************************************************")
 	logs.Printf("*********************Starting Workload-Scheduler******************")
@@ -87,20 +56,23 @@ func main() {
 	dbEndpoint := os.Getenv("ETCD_LOCAL_ENDPOINT")
 
 	if dbEndpoint == "" {
-		dbEndpoint = Cfg.DBEndPoint
+		dbEndpoint = cfg.DBEndPoint
 	}
 
 	//Initalize the common entities like store, store configuration etc.
-	isInit, err := typ.Initialize(Cfg.DBType, dbEndpoint)
+	isInit, err := typ.Initialize(cfg.DBType, dbEndpoint)
 	if err != nil || isInit != true {
 		logs.FatalInfo("Failed to intialize Error:%v return %v", err, isInit)
 	}
 
+	logs.Printf("Configuration file is = %v", cfg.WInfo.Image)
 	//Start the Mesos library
-	go mesoslib.Run(Cfg.Master, Cfg.ArtifactIP, Cfg.ArtifactPort, Cfg.ExecutorPath, Cfg.Image, Cfg.DBType, Cfg.DBEndPoint, Cfg.FrameworkName, Cfg.UserName)
+	go mesoslib.Run(cfg.Master, cfg.ArtifactIP, cfg.ArtifactPort, cfg.ExecutorPath, cfg.WInfo.Image, cfg.DBType, cfg.DBEndPoint, cfg.FrameworkName, cfg.UserName)
+
+
 
 	//start http server
-	httplib.Run(Cfg.HTTPPort)
+	httplib.Run(cfg.HTTPPort)
 
 	logs.Printf("*****************************************************************")
 	logs.Printf("*********************Finished Workload-Scheduler******************")
