@@ -15,7 +15,8 @@ var (
 	Cchan     chan TaskCreate  //Channel for Creator
 	Mchan     chan *TaskUpdate //Channel for Maintainer
 	Dchan     chan TaskMsg     //Channel for Destroyer
-	Agents    *agentstate.State //A Global View of aggents and the Instnaces book keeping
+	Agents    *agentstate.State //A Global View of agents and the Instnaces book keeping
+	Wconfig    *Config //A Global View of Config  
 )
 
 //Global constants for Instance Status
