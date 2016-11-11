@@ -3,7 +3,7 @@ package types
 import (
 	"container/list"
 
-	 "../agentstate"
+	"../agentstate"
 	"../store"
 )
 
@@ -11,12 +11,12 @@ var (
 	Gdb   store.DB //Gdb Golabal variables related to db connection/instace
 	MemDb *InMem   //In memory store
 
-	OfferList *list.List       //list for having offer
-	Cchan     chan TaskCreate  //Channel for Creator
-	Mchan     chan *TaskUpdate //Channel for Maintainer
-	Dchan     chan TaskMsg     //Channel for Destroyer
+	OfferList *list.List        //list for having offer
+	Cchan     chan TaskCreate   //Channel for Creator
+	Mchan     chan *TaskUpdate  //Channel for Maintainer
+	Dchan     chan TaskMsg      //Channel for Destroyer
 	Agents    *agentstate.State //A Global View of agents and the Instnaces book keeping
-	Wconfig    *Config //A Global View of Config  
+	Wconfig   *Config           //A Global View of Config
 )
 
 //Global constants for Instance Status

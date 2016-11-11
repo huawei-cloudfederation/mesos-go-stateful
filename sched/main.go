@@ -1,14 +1,14 @@
 package main
 
 import (
-	"os"
-	"flag"
-	"io/ioutil"
-	"encoding/json"
-	typ "../common/types"
 	"../common/logs"
+	typ "../common/types"
 	"./httplib"
 	"./mesoslib"
+	"encoding/json"
+	"flag"
+	"io/ioutil"
+	"os"
 )
 
 //Declare all the Constants to be used in this file
@@ -68,8 +68,6 @@ func main() {
 	logs.Printf("Configuration file is = %v", cfg.WInfo.Image)
 	//Start the Mesos library
 	go mesoslib.Run(cfg.Master, cfg.ArtifactIP, cfg.ArtifactPort, cfg.ExecutorPath, cfg.WInfo.Image, cfg.DBType, cfg.DBEndPoint, cfg.FrameworkName, cfg.UserName)
-
-
 
 	//start http server
 	httplib.Run(cfg.HTTPPort)
