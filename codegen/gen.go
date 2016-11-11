@@ -7,17 +7,14 @@ import (
 	"text/template"
 )
 
-func main() {
-	var err error
-
-	Name := flag.String("Name", "example", "Name of the scheduler eg: RedisScheduler or MySQLScheduler")
-
-	flag.Parse()
-	// Define a template.
-	const SrcTemplate = `
+const SrcTemplate = `
 package main 
 
 import (
+
+	"fmt"
+	"flag"
+
 	"github.com/huawei-cloudfederation/mesos-go-stateful/sched"
 	"github.com/huawei-cloudfederation/mesos-go-stateful/common/logs"
 )
@@ -73,8 +70,15 @@ func main() {
 	
 	Sched.Start()
 }
-
 `
+
+func main() {
+	var err error
+
+	Name := flag.String("Name", "example", "Name of the scheduler eg: RedisScheduler or MySQLScheduler")
+
+	flag.Parse()
+	// Define a template.
 	// Prepare some data to insert into the template.
 	type Workload struct {
 		Name string

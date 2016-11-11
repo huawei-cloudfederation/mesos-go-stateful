@@ -1,4 +1,4 @@
-package main
+package sched
 
 import (
 	"../common/logs"
@@ -17,23 +17,12 @@ const (
 	HTTP_SERVER_PORT = "8080"
 )
 
-func main() {
-
+func ParseConfig(confName string) {
 	cfgFileName := flag.String("config", "./config.json", "Supply the location of configuration file")
 	dumpConfig := flag.Bool("DumpEmptyConfig", false, "Dump Empty Config file")
 	flag.Parse()
 
 	cfg := typ.NewDefaultConfig()
-
-	if *dumpConfig == true {
-		configBytes, err := json.MarshalIndent(cfg, " ", "  ")
-		if err != nil {
-			logs.Printf("Error marshalling the dummy config file. Exiting %v", err)
-			return
-		}
-		logs.Printf("%s\n", string(configBytes))
-		return
-	}
 
 	cfgFile, err := ioutil.ReadFile(*cfgFileName)
 
@@ -45,6 +34,9 @@ func main() {
 		logs.FatalInfo("Error parsing the config file %v", err)
 	}
 	logs.Printf("Configuration file is = %v", cfg)
+}
+
+func Init(confName string) {
 
 	logs.Printf("*****************************************************************")
 	logs.Printf("*********************Starting Workload-Scheduler******************")
