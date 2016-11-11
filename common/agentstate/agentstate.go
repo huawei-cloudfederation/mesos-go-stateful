@@ -2,7 +2,6 @@
 package agentstate
 
 import (
-	//	"fmt"
 	"sync"
 )
 

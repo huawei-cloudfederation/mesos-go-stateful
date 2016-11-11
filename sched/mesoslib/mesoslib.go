@@ -1,19 +1,19 @@
 package mesoslib
 
 import (
-	"../../common/logs"
-	"../../common/store/etcd"
-	typ "../../common/types"
 	"fmt"
-	"github.com/gogo/protobuf/proto"
-	mesos "github.com/mesos/mesos-go/mesosproto"
-	util "github.com/mesos/mesos-go/mesosutil"
-	sched "github.com/mesos/mesos-go/scheduler"
 	"net"
 	"net/http"
 	"os"
 	"strings"
 	"time"
+	"github.com/gogo/protobuf/proto"
+	mesos "github.com/mesos/mesos-go/mesosproto"
+	util "github.com/mesos/mesos-go/mesosutil"
+	sched "github.com/mesos/mesos-go/scheduler"
+	"github.com/huawei-cloudfederation/mesos-go-stateful/common/logs"
+	"github.com/huawei-cloudfederation/mesos-go-stateful/common/store/etcd"
+	typ "github.com/huawei-cloudfederation/mesos-go-stateful/common/types"
 )
 
 func serveExecutorArtifact(path string, IP, Port string) (*string, string) {

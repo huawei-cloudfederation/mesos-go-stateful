@@ -1,15 +1,15 @@
 package mesoslib
 
 import (
-	"../../common/logs"
-	"../../common/store/etcd"
-	typ "../../common/types"
 	"fmt"
+	"time"
 	"github.com/gogo/protobuf/proto"
 	mesos "github.com/mesos/mesos-go/mesosproto"
 	util "github.com/mesos/mesos-go/mesosutil"
 	sched "github.com/mesos/mesos-go/scheduler"
-	"time"
+	"github.com/huawei-cloudfederation/mesos-go-stateful/common/logs"
+	"github.com/huawei-cloudfederation/mesos-go-stateful/common/store/etcd"
+	typ "github.com/huawei-cloudfederation/mesos-go-stateful/common/types"
 )
 
 //WorkloadScheduler scheudler struct
