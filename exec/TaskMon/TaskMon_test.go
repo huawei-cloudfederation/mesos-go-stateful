@@ -5,7 +5,7 @@ import (
 	"testing"
 	//        "strings"
 	//	"os"
-	"../docker"
+	"github.com/huawei-cloudfederation/mesos-go-stateful/exec/docker"
 )
 
 func TestMain(M *testing.M) {
@@ -24,12 +24,9 @@ func TestLaunchWorkload(T *testing.T) {
 
 	err := tm.launchWorkload(false, "127.0.0.1", "2375")
 
-	fmt.Println(err)
-	tm.UpdateStats()
-
-	/*	if err != nil  {
+	if err != nil {
 		//If its some other error then fail
 		T.Fail()
-	}*/
+	}
 
 }

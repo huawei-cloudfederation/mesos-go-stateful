@@ -11,9 +11,9 @@ import (
 	exec "github.com/mesos/mesos-go/executor"
 	mesos "github.com/mesos/mesos-go/mesosproto"
 
-	"../common/logs"
-	typ "../common/types"
-	"./TaskMon"
+	"github.com/huawei-cloudfederation/mesos-go-stateful/common/logs"
+	typ "github.com/huawei-cloudfederation/mesos-go-stateful/common/types"
+	"github.com/huawei-cloudfederation/mesos-go-stateful/exec/TaskMon"
 )
 
 //DbType Flag for dbtype like etcd/zookeeper

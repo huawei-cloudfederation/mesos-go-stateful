@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"encoding/json"
 	"github.com/astaxie/beego"
-	"../../common/logs"
+	"github.com/huawei-cloudfederation/mesos-go-stateful/common/logs"
 )
 
 //MainController of the HTTP server

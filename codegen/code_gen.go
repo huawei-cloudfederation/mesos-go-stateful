@@ -7,6 +7,7 @@ import (
 	"text/template"
 )
 
+//this package will create new go file with the scheduler name and dummy functions to use
 func main() {
 	var err error
 
