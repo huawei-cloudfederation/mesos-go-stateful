@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	typ "../../common/types"
-	"../docker"
+	typ "github.com/huawei-cloudfederation/mesos-go-stateful/common/types"
+	"github.com/huawei-cloudfederation/mesos-go-stateful/exec/docker"
 )
 
 //TaskMon This structure is used to implement a monitor thread/goroutine for a running task

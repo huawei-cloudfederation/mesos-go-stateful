@@ -3,8 +3,8 @@ package types
 import (
 	"container/list"
 
-	"../agentstate"
-	"../store"
+	"github.com/huawei-cloudfederation/mesos-go-stateful/common/agentstate"
+	"github.com/huawei-cloudfederation/mesos-go-stateful/common/etcd/store"
 )
 
 var (

@@ -1,14 +1,14 @@
 package main
 
 import (
-	"../common/logs"
-	typ "../common/types"
-	"./httplib"
-	"./mesoslib"
 	"encoding/json"
 	"flag"
 	"io/ioutil"
 	"os"
+	"github.com/huawei-cloudfederation/mesos-go-stateful/common/logs"
+	typ "github.com/huawei-cloudfederation/mesos-go-stateful/common/types"
+	"github.com/huawei-cloudfederation/mesos-go-stateful/sched/httplib"
+	"github.com/huawei-cloudfederation/mesos-go-stateful/sched/mesoslib"
 )
 
 //Declare all the Constants to be used in this file
