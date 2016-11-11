@@ -2,18 +2,18 @@ package mesoslib
 
 import (
 	"fmt"
+	"github.com/gogo/protobuf/proto"
+	"github.com/huawei-cloudfederation/mesos-go-stateful/common/logs"
+	"github.com/huawei-cloudfederation/mesos-go-stateful/common/store/etcd"
+	typ "github.com/huawei-cloudfederation/mesos-go-stateful/common/types"
+	mesos "github.com/mesos/mesos-go/mesosproto"
+	util "github.com/mesos/mesos-go/mesosutil"
+	sched "github.com/mesos/mesos-go/scheduler"
 	"net"
 	"net/http"
 	"os"
 	"strings"
 	"time"
-	"github.com/gogo/protobuf/proto"
-	mesos "github.com/mesos/mesos-go/mesosproto"
-	util "github.com/mesos/mesos-go/mesosutil"
-	sched "github.com/mesos/mesos-go/scheduler"
-	"github.com/huawei-cloudfederation/mesos-go-stateful/common/logs"
-	"github.com/huawei-cloudfederation/mesos-go-stateful/common/store/etcd"
-	typ "github.com/huawei-cloudfederation/mesos-go-stateful/common/types"
 )
 
 func serveExecutorArtifact(path string, IP, Port string) (*string, string) {
@@ -159,7 +159,17 @@ func GetFrameWorkID() (string, float64) {
 }
 
 //Run primary function that starts the Mesos Scheduler
-func Run(MasterEndPoint, ServerIP, ServerPort, executorPath, Image, DbType, DbEndPoint, FrameworkName, UserName string) {
+func Run() {
+
+	MasterEndPoint := typ.Cfg.Master
+	ServerIP := typ.Cfg.ArtifactIP
+	ServerPort := typ.Cfg.ArtifactPort
+	executorPath := typ.Cfg.ArtifactPort
+	Image := typ.Cfg.WorkLoad.Image
+	DbType := typ.Cfg.DBType
+	DbEndPoint := typ.Cfg.DBEndPoint
+	FrameworkName := typ.Cfg.FrameworkName
+	UserName := typ.Cfg.UserName
 
 	//Split the configuration string
 

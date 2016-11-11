@@ -4,7 +4,7 @@ import (
 	"container/list"
 
 	"github.com/huawei-cloudfederation/mesos-go-stateful/common/agentstate"
-	"github.com/huawei-cloudfederation/mesos-go-stateful/common/etcd/store"
+	"github.com/huawei-cloudfederation/mesos-go-stateful/common/store"
 )
 
 var (
@@ -16,7 +16,7 @@ var (
 	Mchan     chan *TaskUpdate  //Channel for Maintainer
 	Dchan     chan TaskMsg      //Channel for Destroyer
 	Agents    *agentstate.State //A Global View of agents and the Instnaces book keeping
-	Wconfig   *Config           //A Global View of Config
+	Cfg       *Config           //A Global configuration structure
 )
 
 //Global constants for Instance Status
