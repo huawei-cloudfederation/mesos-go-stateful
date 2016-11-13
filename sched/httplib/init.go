@@ -19,5 +19,6 @@ func init() {
 	beego.Router("/v1/STATUS/", &MainController{}, "get:ListAllInstances")
 	beego.Router("/v1/UPDATE/:INSTANCENAME/SLAVES/:SLAVES", &MainController{}, "put:AddSlaves")
 
-	beego.CopyRequestBody = true
+	//Try this now
+	beego.BConfig.CopyRequestBody = true
 }
