@@ -17,6 +17,7 @@ var (
 	Dchan     chan TaskMsg      //Channel for Destroyer
 	Agents    *agentstate.State //A Global View of agents and the Instnaces book keeping
 	Cfg       *Config           //A Global configuration structure
+	CustomFW  StateFul
 )
 
 //Global constants for Instance Status

@@ -4,8 +4,7 @@ import (
 	"container/list"
 	"log"
 	"time"
-
-	"github.com/huawei-cloudfederation/mesos-go-stateful/common/types"
+	//	"github.com/huawei-cloudfederation/mesos-go-stateful/common/types"
 )
 
 type JobList struct {
@@ -27,7 +26,7 @@ func NewJobList() *JobList {
 
 }
 
-func (JB *JobList) EnQ(I *types.Instance) bool {
+func (JB *JobList) EnQ(I interface{}) bool {
 	JB.Q.PushBack(I)
 
 	if JB.Len() == 1 && JB.IsMonitor {
@@ -37,7 +36,7 @@ func (JB *JobList) EnQ(I *types.Instance) bool {
 	return true
 }
 
-func (JB *JobList) DeQ() *types.Instance {
+func (JB *JobList) DeQ() interface{} {
 	front := JB.Q.Front()
 
 	if front == nil {
@@ -48,7 +47,7 @@ func (JB *JobList) DeQ() *types.Instance {
 		JB.EmptyCh <- true
 	}
 
-	I := front.Value.(*types.Instance)
+	I := front.Value.(interface{})
 
 	JB.Q.Remove(front)
 

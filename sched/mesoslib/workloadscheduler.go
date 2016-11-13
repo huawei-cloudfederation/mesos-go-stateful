@@ -2,14 +2,14 @@ package mesoslib
 
 import (
 	"fmt"
-	"time"
 	"github.com/gogo/protobuf/proto"
-	mesos "github.com/mesos/mesos-go/mesosproto"
-	util "github.com/mesos/mesos-go/mesosutil"
-	sched "github.com/mesos/mesos-go/scheduler"
 	"github.com/huawei-cloudfederation/mesos-go-stateful/common/logs"
 	"github.com/huawei-cloudfederation/mesos-go-stateful/common/store/etcd"
 	typ "github.com/huawei-cloudfederation/mesos-go-stateful/common/types"
+	mesos "github.com/mesos/mesos-go/mesosproto"
+	util "github.com/mesos/mesos-go/mesosutil"
+	sched "github.com/mesos/mesos-go/scheduler"
+	"time"
 )
 
 //WorkloadScheduler scheudler struct
@@ -25,7 +25,7 @@ func NewWorkloadScheduler(exec *mesos.ExecutorInfo) *WorkloadScheduler {
 
 //Registered Scheduler register call back initializes the timestamp and framework id
 func (S *WorkloadScheduler) Registered(driver sched.SchedulerDriver, frameworkID *mesos.FrameworkID, masterInfo *mesos.MasterInfo) {
-	logs.Printf("Workload Registered %v", frameworkID)
+	logs.Printf("Framework %s Registered %v", typ.Cfg.FrameworkName, frameworkID)
 
 	FwIDKey := etcd.ETCD_CONFDIR + "/FrameworkID"
 	typ.Gdb.Set(FwIDKey, frameworkID.GetValue())
@@ -35,14 +35,14 @@ func (S *WorkloadScheduler) Registered(driver sched.SchedulerDriver, frameworkID
 
 //Reregistered re-register call back simply updates the timestamp
 func (S *WorkloadScheduler) Reregistered(driver sched.SchedulerDriver, masterInfo *mesos.MasterInfo) {
-	logs.Printf("Workload Re-registered")
+	logs.Printf("Famework %s Re-registered", typ.Cfg.FrameworkName)
 	FwTstamp := etcd.ETCD_CONFDIR + "/RegisteredAt"
 	typ.Gdb.Set(FwTstamp, time.Now().String())
 }
 
 //Disconnected Not implemented call back
 func (S *WorkloadScheduler) Disconnected(sched.SchedulerDriver) {
-	logs.Printf("Workload Disconnected")
+	logs.Printf("Framework %s Disconnected", typ.Cfg.FrameworkName)
 }
 
 //ResourceOffers The moment we recive some offers we loop through the OfferList (container/list)
@@ -102,7 +102,7 @@ func (S *WorkloadScheduler) ResourceOffers(driver sched.SchedulerDriver, offers 
 				tmpData = []byte(fmt.Sprintf("%d SlaveOf %s", tsk.Mem, tsk.MasterIpPort))
 			}
 
-			if cpus >= tskCPUFloat && mems >= tskMemFloat &&  typ.Agents.Canfit(offer.SlaveId.GetValue(), tsk.Name, tsk.DValue) {
+			if cpus >= tskCPUFloat && mems >= tskMemFloat && typ.Agents.Canfit(offer.SlaveId.GetValue(), tsk.Name, tsk.DValue) {
 				tskID := &mesos.TaskID{Value: proto.String(tsk.Taskname)}
 				mesosTsk := &mesos.TaskInfo{
 					Name:     proto.String(tsk.Taskname),

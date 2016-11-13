@@ -37,6 +37,11 @@ func ParseConfig(cfgFileName string) error {
 	return nil
 }
 
+func Register(S typ.StateFul) {
+	//Assign the new Statful custom scheduler to global variable so that we can call its function when we need it
+	typ.CustomFW = S
+}
+
 func Init(confName string) error {
 
 	//ParseConfig File

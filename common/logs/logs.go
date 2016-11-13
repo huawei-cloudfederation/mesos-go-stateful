@@ -1,41 +1,31 @@
 package logs
 
 import (
-	"flag"
+	"fmt"
 	"github.com/golang/glog"
 )
 
 //Printf logs to the console
 func Printf(format string, args ...interface{}) {
-	flag.Parse()
-	glog.Infof(format, args...)
-	flag.Lookup("logtostderr").Value.Set("true")
+	glog.InfoDepth(1, fmt.Sprintf(format, args...))
 }
 
 //Error logs the error to the console
 func Error(format string, args ...interface{}) {
-	flag.Parse()
-	glog.Errorf(format, args...)
-	flag.Lookup("logtostderr").Value.Set("true")
+	glog.ErrorDepth(1, fmt.Sprintf(format, args...))
 }
 
 //Fatal logs the fatal error to the console
 func Fatal(args ...interface{}) {
-	flag.Parse()
-	glog.Fatal(args...)
-	flag.Lookup("logtostderr").Value.Set("true")
+	glog.FatalDepth(1, args...)
 }
 
 //FatalInfo logs the fatal error to the console
 func FatalInfo(format string, args ...interface{}) {
-	flag.Parse()
-	glog.Fatalf(format, args...)
-	flag.Lookup("logtostderr").Value.Set("true")
+	glog.FatalDepth(1, fmt.Sprintf(format, args...))
 }
 
 //Println logs to the console
 func Println(args ...interface{}) {
-	flag.Parse()
-	glog.Infoln(args...)
-	flag.Lookup("logtostderr").Value.Set("true")
+	glog.InfoDepth(1, args...)
 }
