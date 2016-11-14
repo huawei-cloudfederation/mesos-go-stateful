@@ -11,15 +11,7 @@ type Config struct {
 	ArtifactIP    string //The IP to which we should bind to for distributing the executor among the interfaces
 	ArtifactPort  string //The port to which we should bind to for distributing the executor
 	HTTPPort      string //Defaults to 8080 if otherwise specify explicitly
-	WorkLoad      WL     //Definition of basic workload, if this is common to all it can be defined in global config
-}
-
-type WL struct {
-	CPU     float64 //Number of CPU each workload will require NOTE:an instance may have more than one workload
-	Mem     float64 //Memory requirement of each workload  in MB
-	Disk    float64 //Disk requirement of each workload in GB
-	Network string  //Most preffered networkign layer HOST or DOckerBridge
-	Image   string  // Docker Image of this workload
+	WorkLoad      WLSpec //Definition of basic workload, if this is common to all it can be defined in global config
 }
 
 //NewDefaultConfig Default Constructor to create a config file
@@ -35,6 +27,6 @@ func NewDefaultConfig() *Config {
 	Cfg.ArtifactIP = "127.0.0.1"
 	Cfg.ArtifactPort = "5454"
 	Cfg.HTTPPort = "5656"
-	Cfg.WorkLoad = WL{CPU: 1.0, Mem: 100.0, Disk: 1.0, Network: "host", Image: "redis:3.0-alpine"}
+	Cfg.WorkLoad.Default()
 	return &Cfg
 }

@@ -22,6 +22,7 @@ type Instance struct {
 	Status     string           //Status of this instance "CREATING/RUNNING/DISABLED"
 	Mname      string           //Name / task id of the master workload proc
 	Snames     []string         //Name of the slave
+	Spec       WLSpec           //Workload Specification (of each runnign process beloging to this Instance)
 	Procs      map[string]*Proc //An array of workload procs to be filled later
 }
 
@@ -83,7 +84,8 @@ func (I *Instance) Load() bool {
 	I.ExpSlaves, err = strconv.Atoi(tmpStr)
 	I.Status, err = Gdb.Get(nodeName + "Status")
 	I.Mname, err = Gdb.Get(nodeName + "Mname")
-
+	SpecStr, err := Gdb.Get(nodeName + "Spec")
+	I.Spec.FromJson(SpecStr)
 	nodeNameSlaves := nodeName + "Snames/"
 	SnamesKey, err = Gdb.ListSection(nodeNameSlaves, false)
 	if err != nil {
@@ -118,6 +120,7 @@ func (I *Instance) Sync() bool {
 	Gdb.Set(nodeName+"ExpSlaves", fmt.Sprintf("%d", I.ExpSlaves))
 	Gdb.Set(nodeName+"Status", I.Status)
 	Gdb.Set(nodeName+"Mname", I.Mname)
+	Gdb.Set(nodeName+"Spec", I.Spec.ToJson())
 
 	//Create Section for Slaves and Procs
 	nodeNameSlaves := nodeName + "Snames/"

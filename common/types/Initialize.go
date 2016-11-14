@@ -15,7 +15,7 @@ func Initialize(dbtype string, config string) (bool, error) {
 	//Initalize all the communication channels
 	OfferList = list.New()
 	OfferList.Init()
-	Cchan = make(chan TaskCreate)
+	Cchan = make(chan HttpToCR)
 	Mchan = make(chan *TaskUpdate) //Channel for Maintainer
 	Dchan = make(chan TaskMsg)     //Channel for Destroyer
 

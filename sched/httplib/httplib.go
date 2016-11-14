@@ -1,10 +1,14 @@
 package httplib
 
 import (
-	"fmt"
 	"encoding/json"
+	"fmt"
+	"net/http"
+
 	"github.com/astaxie/beego"
 	"github.com/huawei-cloudfederation/mesos-go-stateful/common/logs"
+
+	typ "github.com/huawei-cloudfederation/mesos-go-stateful/common/types"
 )
 
 //MainController of the HTTP server
@@ -19,18 +23,33 @@ func (this *MainController) CreateInstance() {
 
 	var name string
 
-	var data map[string]interface{}
 	name = this.Ctx.Input.Param(":INSTANCENAME")
+	slaves, _ := strconv.Atoi(this.Ctx.Input.Param(":SLAVES"))
+	logs.Printf("HTTP: CREATE request for instance %v", name)
 
-	err := json.Unmarshal(this.Ctx.Input.RequestBody, &data)
-	if err != nil {
-		logs.Println("Cannot Unmarshal\n", err)
+	//Check the Cache if we have the Instance already
+	//If intance is already available return with Error
+	if typ.MemDb.IsValid(name) {
+		this.Ctx.ResponseWriter.WriteHeader(http.StatusConflict)
+		this.Ctx.WriteString(fmt.Sprintf("Instance %v already exists, Cannot the created again", name))
+		logs.Printf("Instance %v already there, Cannot the created again", name)
 		return
 	}
 
-	this.Ctx.ResponseWriter.WriteHeader(201)
-	this.Ctx.WriteString(fmt.Sprintf("Request Accepted, %s Instance will be created", name))
+	data.Spec.Copy(typ.Cfg.WorkLoad)
+	dataBytes := this.Ctx.Input.CopyBody()
 
+	ToCreator := typ.NewHttpToCR(name, slaves, string(dataBytes))
+	typ.CChan <- ToCreator
+
+	logs.Printf("HTTP-To-CREATOR %v  Sent", ToCreator)
+
+	//Instance is Unavailable Supply the information to CREATE go-routine to be converted as OFFERS
+
+	//Return with CREATED HTTP code
+	this.Ctx.ResponseWriter.WriteHeader(http.StatusCreated)
+	this.Ctx.WriteString(fmt.Sprintf("Request Accepted, %s Instance will be created", name))
+	logs.Printf("Request Accepted, %s Instance will be created", name)
 }
 
 //DeleteInstance handles a delete instance REST call
@@ -65,7 +84,7 @@ func (this *MainController) ListAllInstances() {
 
 }
 
-//UpdateSlaves handles AddSlaves REST call 
+//UpdateSlaves handles AddSlaves REST call
 func (this *MainController) AddSlaves() {
 
 	//var name string
