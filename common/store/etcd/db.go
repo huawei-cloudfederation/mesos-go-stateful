@@ -53,7 +53,7 @@ func (db *etcdDB) Setup(config string) error {
 		Endpoints: []string{config},
 		Transport: cli.DefaultTransport,
 		// set timeout per request to fail fast when the target endpoint is unavailable
-		HeaderTimeoutPerRequest: time.Second,
+		HeaderTimeoutPerRequest: time.Second * 10,
 	}
 
 	err = db.Login()

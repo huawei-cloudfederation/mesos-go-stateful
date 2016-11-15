@@ -4,7 +4,7 @@ package types
 type StateFul interface {
 
 	//Configure  the Instance if you want and return update command argument to be supplied with th task
-	Config(I *Instance) string
+	Config(I *Instance, IsMaster bool) []string
 
 	//Start the task generally
 	Start(I *Instance) error

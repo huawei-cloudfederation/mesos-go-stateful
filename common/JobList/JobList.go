@@ -2,9 +2,9 @@ package JobList
 
 import (
 	"container/list"
-	"log"
+
+	"github.com/huawei-cloudfederation/mesos-go-stateful/common/logs"
 	"time"
-	//	"github.com/huawei-cloudfederation/mesos-go-stateful/common/types"
 )
 
 type JobList struct {
@@ -54,6 +54,19 @@ func (JB *JobList) DeQ() interface{} {
 	return I
 }
 
+func (JB *JobList) Front() *list.Element {
+	return JB.Q.Front()
+}
+
+func (JB *JobList) Back() *list.Element {
+	return JB.Q.Back()
+}
+
+func (JB *JobList) Delete(E *list.Element) {
+
+	JB.Q.Remove(E)
+}
+
 func (JB *JobList) Len() int { return JB.Q.Len() }
 
 //EventHandler This should be started as a goroutine, it takes two function pointers as argumetns
@@ -71,20 +84,25 @@ func (JB *JobList) EventHandler(NewEvent func() bool, EmptyEvent func() bool, Fr
 		select {
 
 		case <-JB.NewCh:
-			log.Printf("JOBLIST: Call NewEvent()")
+			logs.Printf("JOBLIST: Call NewEvent()")
 			NewEvent()
 			JobEmpty = false
 
 		case <-JB.EmptyCh:
-			log.Printf("JOBLIST: Empty")
+			logs.Printf("JOBLIST: Empty")
 			JobEmpty = true
 
 		case <-timeoutCh:
-			if JobEmpty {
-				log.Printf("JOBLIST: Call EmptyEvent()")
-				EmptyEvent()
-			}
 			timeoutCh = time.After(Frequency)
+			len := JB.Len()
+			if len == 0 {
+				if JobEmpty {
+					logs.Printf("JOBLIST: Call EmptyEvent()")
+					EmptyEvent()
+				}
+			} else {
+				logs.Printf("JOBLIST Currently has %d jobs pending", len)
+			}
 		}
 	}
 	JB.IsMonitor = false

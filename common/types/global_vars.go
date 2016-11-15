@@ -1,8 +1,7 @@
 package types
 
 import (
-	"container/list"
-
+	"github.com/huawei-cloudfederation/mesos-go-stateful/common/JobList"
 	"github.com/huawei-cloudfederation/mesos-go-stateful/common/agentstate"
 	"github.com/huawei-cloudfederation/mesos-go-stateful/common/store"
 )
@@ -11,13 +10,13 @@ var (
 	Gdb   store.DB //Gdb Golabal variables related to db connection/instace
 	MemDb *InMem   //In memory store
 
-	OfferList *list.List //list for having offer
-	//Cchan     chan TaskCreate   //Channel for Creator
-	Mchan    chan *TaskUpdate  //Channel for Maintainer
-	Dchan    chan TaskMsg      //Channel for Destroyer
-	Agents   *agentstate.State //A Global View of agents and the Instnaces book keeping
-	Cfg      *Config           //A Global configuration structure
-	CustomFW StateFul
+	OfferList *JobList.JobList  //list for having offer
+	Cchan     chan HttpToCR     //Channel for Creator
+	Mchan     chan *TaskUpdate  //Channel for Maintainer
+	Dchan     chan TaskMsg      //Channel for Destroyer
+	Agents    *agentstate.State //A Global View of agents and the Instnaces book keeping
+	Cfg       *Config           //A Global configuration structure
+	CustomFW  StateFul
 )
 
 //Global constants for Instance Status

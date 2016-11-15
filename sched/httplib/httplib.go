@@ -1,13 +1,13 @@
 package httplib
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/astaxie/beego"
-	"github.com/huawei-cloudfederation/mesos-go-stateful/common/logs"
 
+	"github.com/huawei-cloudfederation/mesos-go-stateful/common/logs"
 	typ "github.com/huawei-cloudfederation/mesos-go-stateful/common/types"
 )
 
@@ -20,7 +20,6 @@ type MainController struct {
 func (this *MainController) CreateInstance() {
 
 	//Parse the input URL
-
 	var name string
 
 	name = this.Ctx.Input.Param(":INSTANCENAME")
@@ -36,12 +35,9 @@ func (this *MainController) CreateInstance() {
 		return
 	}
 
-	data.Spec.Copy(typ.Cfg.WorkLoad)
-	dataBytes := this.Ctx.Input.CopyBody()
-
+	dataBytes := this.Ctx.Input.RequestBody
 	ToCreator := typ.NewHttpToCR(name, slaves, string(dataBytes))
-	typ.CChan <- ToCreator
-
+	typ.Cchan <- ToCreator
 	logs.Printf("HTTP-To-CREATOR %v  Sent", ToCreator)
 
 	//Instance is Unavailable Supply the information to CREATE go-routine to be converted as OFFERS
@@ -58,7 +54,6 @@ func (this *MainController) DeleteInstance() {
 	var name string
 	//Parse the input URL
 	name = this.Ctx.Input.Param(":INSTANCENAME") //Get the name of the instance
-
 	this.Ctx.ResponseWriter.WriteHeader(200)
 	this.Ctx.WriteString(fmt.Sprintf("Request Placed for destroying %s instance", name))
 

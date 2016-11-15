@@ -23,6 +23,7 @@ type Instance struct {
 	Mname      string           //Name / task id of the master workload proc
 	Snames     []string         //Name of the slave
 	Spec       WLSpec           //Workload Specification (of each runnign process beloging to this Instance)
+	DValue     int              //Distribution Value of WorkLoads (How to spread the workload)
 	Procs      map[string]*Proc //An array of workload procs to be filled later
 }
 
@@ -30,9 +31,9 @@ type Instance struct {
 // Fills up the structure and updates the central store
 // Returns an instance pointer
 // Returns nil if the instance already exists
-func NewInstance(Name string, Type string, Masters int, Slaves int, Cap int) *Instance {
+func NewInstance(Name string, Masters int, Slaves int, S WLSpec) *Instance {
 
-	p := &Instance{Name: Name, Type: Type, ExpMasters: Masters, ExpSlaves: Slaves, Capacity: Cap}
+	p := &Instance{Name: Name, ExpMasters: Masters, ExpSlaves: Slaves, Spec: S, DValue:2}
 	return p
 }
 

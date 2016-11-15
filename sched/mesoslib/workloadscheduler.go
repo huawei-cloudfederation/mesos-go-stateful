@@ -1,7 +1,7 @@
 package mesoslib
 
 import (
-	"fmt"
+	//"fmt"
 	"github.com/gogo/protobuf/proto"
 	"github.com/huawei-cloudfederation/mesos-go-stateful/common/logs"
 	"github.com/huawei-cloudfederation/mesos-go-stateful/common/store/etcd"
@@ -84,25 +84,28 @@ func (S *WorkloadScheduler) ResourceOffers(driver sched.SchedulerDriver, offers 
 			mems += res.GetScalar().GetValue()
 		}
 
+		diskResources := util.FilterResources(offer.Resources, func(res *mesos.Resource) bool {
+			return res.GetName() == "disk"
+		})
+		disk := 0.0
+		for _, res := range diskResources {
+			disk += res.GetScalar().GetValue()
+		}
+
 		logs.Printf("Received Offer with CPU=%v MEM=%v OfferID=%v", cpus, mems, offer.Id.GetValue())
 		var tasks []*mesos.TaskInfo
 
 		//Loop through the tasks
-		for tskEle := typ.OfferList.Front(); tskEle != nil; {
+		for tskEle := typ.OfferList.Front();  tskEle != nil; {
 
 			tsk := tskEle.Value.(typ.Offer)
-			tskCPUFloat := float64(tsk.Cpu)
-			tskMemFloat := float64(tsk.Mem)
+			tskCPUFloat := tsk.Spec.CPU
+			tskMemFloat := tsk.Spec.Mem
+			tskDiskFloat := tsk.Spec.Disk
 
 			var tmpData []byte
 
-			if tsk.IsMaster {
-				tmpData = []byte(fmt.Sprintf("%d Master", tsk.Mem))
-			} else {
-				tmpData = []byte(fmt.Sprintf("%d SlaveOf %s", tsk.Mem, tsk.MasterIpPort))
-			}
-
-			if cpus >= tskCPUFloat && mems >= tskMemFloat && typ.Agents.Canfit(offer.SlaveId.GetValue(), tsk.Name, tsk.DValue) {
+			if cpus >= tskCPUFloat && mems >= tskMemFloat && disk >= tskDiskFloat && typ.Agents.Canfit(offer.SlaveId.GetValue(), tsk.Name, tsk.DValue) {
 				tskID := &mesos.TaskID{Value: proto.String(tsk.Taskname)}
 				mesosTsk := &mesos.TaskInfo{
 					Name:     proto.String(tsk.Taskname),
@@ -112,19 +115,22 @@ func (S *WorkloadScheduler) ResourceOffers(driver sched.SchedulerDriver, offers 
 					Resources: []*mesos.Resource{
 						util.NewScalarResource("cpus", tskCPUFloat),
 						util.NewScalarResource("mem", tskMemFloat),
+						util.NewScalarResource("disk", tskDiskFloat),
 					},
 					Data: tmpData,
+					Command: &mesos.CommandInfo{Arguments:tsk.CmdInfo},
 				}
 				mems -= tskMemFloat
 				cpus -= tskCPUFloat
 
-				currentTask := tskEle
+				CurTask := tskEle
 				tskEle = tskEle.Next()
-				typ.OfferList.Remove(currentTask)
+				typ.OfferList.Delete(CurTask)
 				tasks = append(tasks, mesosTsk)
 				typ.Agents.Add(offer.SlaveId.GetValue(), tsk.Name, 1)
 
 			} else {
+				//If the WorkLoad does not fit in any offers push it back in the queue
 				tskEle = tskEle.Next()
 			}
 			//Check if this task is suitable for this offer
@@ -146,8 +152,7 @@ func (S *WorkloadScheduler) StatusUpdate(driver sched.SchedulerDriver, status *m
 	logs.Printf("Status=%v", ts)
 
 	//Send it across to the channel to maintainer
-	//typ.Mchan <- &ts
-
+	//typ.Mchan <- &t
 }
 
 //OfferRescinded Not implemented
@@ -174,3 +179,4 @@ func (S *WorkloadScheduler) ExecutorLost(_ sched.SchedulerDriver, eid *mesos.Exe
 func (S *WorkloadScheduler) Error(_ sched.SchedulerDriver, err string) {
 	logs.Printf("Scheduler received error:%v", err)
 }
+

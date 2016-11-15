@@ -8,6 +8,7 @@ import (
 	"github.com/huawei-cloudfederation/mesos-go-stateful/common/logs"
 	typ "github.com/huawei-cloudfederation/mesos-go-stateful/common/types"
 	"github.com/huawei-cloudfederation/mesos-go-stateful/sched/httplib"
+	"github.com/huawei-cloudfederation/mesos-go-stateful/sched/CMD"
 	"github.com/huawei-cloudfederation/mesos-go-stateful/sched/mesoslib"
 )
 
@@ -74,6 +75,10 @@ func Init(confName string) error {
 	logs.Printf("Configuration file is = %v", *typ.Cfg)
 	//Start the Mesos library
 	go mesoslib.Run()
+
+	//Start the Worker/Governing threads
+	Cmd := CMD.NewCMD(typ.CustomFW)
+	go Cmd.Run()
 
 	//start http server
 	httplib.Run(typ.Cfg.HTTPPort)

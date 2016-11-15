@@ -4,15 +4,15 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
-	"io"
-	"os"
-	"strings"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
-	"golang.org/x/net/context"
 	"github.com/huawei-cloudfederation/mesos-go-stateful/common/logs"
 	typ "github.com/huawei-cloudfederation/mesos-go-stateful/common/types"
+	"golang.org/x/net/context"
+	"io"
+	"os"
+	"strings"
 )
 
 //A Package wrapper for handling docker containers

@@ -193,11 +193,12 @@ func Run() {
 
 	//create the scheduler dirver object
 	schedConfig := sched.DriverConfig{
-		Scheduler:      NewWorkloadScheduler(exec),
-		Framework:      fwinfo,
-		Master:         MasterEndPoint,
-		Credential:     (*mesos.Credential)(nil),
-		BindingAddress: parseIP(ServerIP),
+		Scheduler:        NewWorkloadScheduler(exec),
+		Framework:        fwinfo,
+		Master:           MasterEndPoint,
+		Credential:       (*mesos.Credential)(nil),
+		BindingAddress:   parseIP(ServerIP),
+		HostnameOverride: "10.145.16.98",
 	}
 
 	driver, err := sched.NewMesosSchedulerDriver(schedConfig)
