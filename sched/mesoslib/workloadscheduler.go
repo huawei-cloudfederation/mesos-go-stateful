@@ -15,6 +15,7 @@ import (
 //WorkloadScheduler scheudler struct
 type WorkloadScheduler struct {
 	executor *mesos.ExecutorInfo
+	driver sched.SchedulerDriver
 }
 
 //NewWorkloadScheduler Constructor
@@ -26,7 +27,7 @@ func NewWorkloadScheduler(exec *mesos.ExecutorInfo) *WorkloadScheduler {
 //Registered Scheduler register call back initializes the timestamp and framework id
 func (S *WorkloadScheduler) Registered(driver sched.SchedulerDriver, frameworkID *mesos.FrameworkID, masterInfo *mesos.MasterInfo) {
 	logs.Printf("Framework %s Registered %v", typ.Cfg.FrameworkName, frameworkID)
-
+	S.driver = driver
 	FwIDKey := etcd.ETCD_CONFDIR + "/FrameworkID"
 	typ.Gdb.Set(FwIDKey, frameworkID.GetValue())
 	FwTstamp := etcd.ETCD_CONFDIR + "/RegisteredAt"
@@ -35,7 +36,9 @@ func (S *WorkloadScheduler) Registered(driver sched.SchedulerDriver, frameworkID
 
 //Reregistered re-register call back simply updates the timestamp
 func (S *WorkloadScheduler) Reregistered(driver sched.SchedulerDriver, masterInfo *mesos.MasterInfo) {
+
 	logs.Printf("Famework %s Re-registered", typ.Cfg.FrameworkName)
+	S.driver = driver
 	FwTstamp := etcd.ETCD_CONFDIR + "/RegisteredAt"
 	typ.Gdb.Set(FwTstamp, time.Now().String())
 }
@@ -52,13 +55,14 @@ func (S *WorkloadScheduler) ResourceOffers(driver sched.SchedulerDriver, offers 
 	//No work to do so reject all the offers we just received
 	offerCount := typ.OfferList.Len()
 	if offerCount <= 0 {
+		RSeconds := 3600.0
 		//Reject the offers nothing to do now
 		ids := make([]*mesos.OfferID, len(offers))
 		for i, offer := range offers {
 			ids[i] = offer.Id
 		}
-		driver.LaunchTasks(ids, []*mesos.TaskInfo{}, &mesos.Filters{})
-		//logs.Printf("No task to peform reject all the offer")
+		driver.LaunchTasks(ids, []*mesos.TaskInfo{}, &mesos.Filters{RefuseSeconds:&RSeconds})
+		logs.Printf("DECLINE OFFERS for 1 Next Hour")
 		return
 	}
 
@@ -180,3 +184,18 @@ func (S *WorkloadScheduler) Error(_ sched.SchedulerDriver, err string) {
 	logs.Printf("Scheduler received error:%v", err)
 }
 
+func (S *WorkloadScheduler) JobListisQueued () bool {
+	logs.Printf("OfferLIST Queued")
+	_, err := S.driver.ReviveOffers()
+	if err != nil {
+		logs.Printf("ReviveOffers Error %v", err)
+		return false
+	}
+	return true
+}
+
+func (S *WorkloadScheduler) JobListisEmpty () bool {
+
+	logs.Printf("OfferLIST is Empty")
+	return true
+}

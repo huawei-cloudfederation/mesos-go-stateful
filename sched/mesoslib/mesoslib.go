@@ -192,8 +192,9 @@ func Run() {
 	//TODO
 
 	//create the scheduler dirver object
+	MyScheduler := NewWorkloadScheduler(exec)
 	schedConfig := sched.DriverConfig{
-		Scheduler:        NewWorkloadScheduler(exec),
+		Scheduler:        MyScheduler,
 		Framework:        fwinfo,
 		Master:           MasterEndPoint,
 		Credential:       (*mesos.Credential)(nil),
@@ -207,6 +208,7 @@ func Run() {
 	}
 	logs.Printf("The Framework ID is %v and %v", fwinfo.Id, schedConfig.Framework.Id)
 
+	go typ.OfferList.EventHandler(MyScheduler.JobListisQueued, MyScheduler.JobListisEmpty, time.Second)
 	status, err := driver.Run()
 	if err != nil {
 		logs.FatalInfo("Framework Run() error %v", err)

@@ -8,7 +8,7 @@ import (
 	"text/template"
 
 	"github.com/huawei-cloudfederation/mesos-go-stateful/common/logs"
-	typ "github.com/huawei-cloudfederation/mesos-go-stateful/common/types"
+	typ "github.com/huawei-cloudfederation/mesos-go-stateful/common/types" 
 )
 
 const ExecutorGo = `

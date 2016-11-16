@@ -4,8 +4,6 @@ import (
 	"github.com/huawei-cloudfederation/mesos-go-stateful/common/logs"
 	"github.com/huawei-cloudfederation/mesos-go-stateful/common/id"
 	typ "github.com/huawei-cloudfederation/mesos-go-stateful/common/types"
-	"fmt"
-	"time"
 )
 
 type CMD struct {
@@ -22,18 +20,10 @@ func (C *CMD) Run() {
 	go C.Creator()
 	go C.Maintainer()
 	go C.Destroy()
-	go typ.OfferList.EventHandler(JobListisQueued, JobListisEmpty, time.Second)
+	//go typ.OfferList.EventHandler(JobListisQueued, JobListisEmpty, time.Second)
 }
 
-func JobListisQueued () bool {
-	fmt.Printf("OfferLIST Queued")
-	return true
-}
 
-func JobListisEmpty () bool {
-	fmt.Printf("OfferLIST Empty")
-	return true
-}
 
 func (C *CMD) Creator() {
 
