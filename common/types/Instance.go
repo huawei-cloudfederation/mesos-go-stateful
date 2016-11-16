@@ -21,10 +21,10 @@ type Instance struct {
 	ExpSlaves  int              //Expected number of Slaves
 	Status     string           //Status of this instance "CREATING/RUNNING/DISABLED"
 	Mname      string           //Name / task id of the master workload proc
-	Snames     []string         //Name of the slave
+	Snames     []string         //Name of the slaves usually will be more than one
 	Spec       WLSpec           //Workload Specification (of each runnign process beloging to this Instance)
 	DValue     int              //Distribution Value of WorkLoads (How to spread the workload)
-	Procs      map[string]*Proc //An array of workload procs to be filled later
+	Procs      map[string]*Task //An array of workload procs to be filled later
 }
 
 // NewInstance Creates a new instance variable
@@ -200,14 +200,14 @@ func (I *Instance) SyncMasters() bool {
 func (I *Instance) LoadProcs() bool {
 
 	if I.Procs == nil {
-		I.Procs = make(map[string]*Proc)
+		I.Procs = make(map[string]*Task)
 	}
 
-	I.Procs[I.Mname] = LoadProc(I.Name + "::" + I.Mname)
+	I.Procs[I.Mname] = LoadTask(I.Name + "::" + I.Mname)
 
 	for _, n := range I.Snames {
 		logs.Printf("Laoding proc key=%v ", n)
-		I.Procs[n] = LoadProc(I.Name + "::" + n)
+		I.Procs[n] = LoadTask(I.Name + "::" + n)
 	}
 
 	return true
@@ -217,33 +217,8 @@ func (I *Instance) LoadProcs() bool {
 //Instance_Json  Filtered elementes of an Instnace that will be sent as an HTTP response
 type Instance_Json struct {
 	Name     string
-	Type     string
-	Status   string
-	Capacity int
-	Master   *ProcJson
-	Slaves   []*ProcJson
-}
-
-//ToJson_Obj Filtered elementes of an Instnace that will be sent as an HTTP response
-func (I *Instance) ToJson_Obj() Instance_Json {
-
-	var res Instance_Json
-	res.Name = I.Name
-	res.Type = I.Type
-	res.Capacity = I.Capacity
-	res.Status = I.Status
-
-	if I.Status == INST_STATUS_RUNNING {
-		var p *Proc
-		p = I.Procs[I.Mname]
-		res.Master = p.ToJson()
-		for _, sname := range I.Snames {
-			p = I.Procs[sname]
-			res.Slaves = append(res.Slaves, p.ToJson())
-		}
-	}
-
-	return res
+	Master   *TaskStats
+	Slaves   []*TaskStats
 }
 
 //ToJson Marshall the Instane to a JSON
@@ -251,26 +226,21 @@ func (I *Instance) ToJson() string {
 
 	var res Instance_Json
 	res.Name = I.Name
-	res.Type = I.Type
-	res.Capacity = I.Capacity
-	res.Status = I.Status
 
 	if I.Status == INST_STATUS_RUNNING {
-		var p *Proc
+		var p *Task
 		p = I.Procs[I.Mname]
-		res.Master = p.ToJson()
-		res.Master.Port = p.Port
+		res.Master = &p.Stats
+
 		for _, sname := range I.Snames {
 			p = I.Procs[sname]
-			res.Slaves = append(res.Slaves, p.ToJson())
+			res.Slaves = append(res.Slaves, &p.Stats)
 		}
 	}
 
 	b, err := json.Marshal(res)
-
 	if err != nil {
-		return "Marshaling error"
+		return "INSTANCE: Marshaling error"
 	}
-
 	return string(b)
 }

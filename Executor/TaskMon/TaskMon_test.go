@@ -5,7 +5,7 @@ import (
 	"testing"
 	//        "strings"
 	//	"os"
-	"github.com/huawei-cloudfederation/mesos-go-stateful/exec/docker"
+	"github.com/huawei-cloudfederation/mesos-go-stateful/Executor/docker"
 )
 
 func TestMain(M *testing.M) {

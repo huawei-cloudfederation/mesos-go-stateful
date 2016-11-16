@@ -202,19 +202,15 @@ func Run() {
 	}
 
 	driver, err := sched.NewMesosSchedulerDriver(schedConfig)
-
 	if err != nil {
 		logs.FatalInfo("Framework is not created error %v", err)
 	}
-
 	logs.Printf("The Framework ID is %v and %v", fwinfo.Id, schedConfig.Framework.Id)
 
 	status, err := driver.Run()
-
 	if err != nil {
 		logs.FatalInfo("Framework Run() error %v", err)
 	}
 
 	logs.Printf("Framework Terminated with status %v", status.String())
-
 }

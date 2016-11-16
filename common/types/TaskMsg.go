@@ -3,7 +3,7 @@ package types
 //TaskMsg Type that is used to communicate with Destroyer
 type TaskMsg struct {
 	MSG int
-	P   *Proc
+	P   *Task
 }
 
 const (
@@ -11,3 +11,4 @@ const (
 	TASK_MSG_MAKEMASTER        //1
 	TASK_MSG_SLAVEOF
 )
+

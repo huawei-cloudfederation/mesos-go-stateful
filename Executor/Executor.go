@@ -1,4 +1,4 @@
-package main
+package Executor
 
 import (
 	"flag"
@@ -13,14 +13,10 @@ import (
 
 	"github.com/huawei-cloudfederation/mesos-go-stateful/common/logs"
 	typ "github.com/huawei-cloudfederation/mesos-go-stateful/common/types"
-	"github.com/huawei-cloudfederation/mesos-go-stateful/exec/TaskMon"
+	"github.com/huawei-cloudfederation/mesos-go-stateful/Executor/TaskMon"
 )
 
-//DbType Flag for dbtype like etcd/zookeeper
-var DbType = flag.String("DbType", "etcd", "Type of the database etcd/zookeeper etc.,")
 
-//DbEndPoint The actuall endpoint of the database.
-var DbEndPoint = flag.String("DbEndPoint", "", "Endpoint of the database")
 
 var Image = flag.String("Image", "image-name", "Image of the worklaod Proc to be downloaded")
 
@@ -29,6 +25,7 @@ var WorkloadLogger *log.Logger
 
 //WorkloadExecutor Basic strucutre for the executor
 type WorkloadExecutor struct {
+	CustomExecutor StatefulExecutor
 	tasksLaunched int
 	HostIP        string
 	monMap        map[string](*TaskMon.TaskMon)
@@ -123,7 +120,7 @@ func (exec *WorkloadExecutor) LaunchTask(driver exec.ExecutorDriver, taskInfo *m
 		exitState := mesos.TaskState_TASK_FINISHED.Enum()
 
 		exitErr := M.Container.Wait() //TODO: Collect the return value of the process and send appropriate TaskUpdate eg:TaskFinished only on clean shutdown others will get TaskFailed
-		if exitErr != 0 || M.P.Msg != "SHUTDOWN" {
+		if exitErr != 0  {
 			//If the workload-server proc finished either with a non-zero or its not suppose to die then mark it as Task filed
 			exitState = mesos.TaskState_TASK_FAILED.Enum()
 			//Signal the monitoring thread to stop monitoring from now on
@@ -148,7 +145,9 @@ func (exec *WorkloadExecutor) LaunchTask(driver exec.ExecutorDriver, taskInfo *m
 func (exec *WorkloadExecutor) KillTask(driver exec.ExecutorDriver, taskID *mesos.TaskID) {
 	tid := taskID.GetValue()
 	//tbd: is there any error check needed
-	exec.monMap[tid].Die()
+	if exec.monMap[tid].Die() {
+		delete(exec.monMap, tid)
+	}
 
 	logs.Println("Killed task with task id:", tid)
 }
@@ -174,21 +173,22 @@ func init() {
 	flag.Parse()
 }
 
-func main() {
+func Run(SE StatefulExecutor) {
 	logs.Println("Starting Workload Executor")
 
-	typ.Initialize(*DbType, *DbEndPoint)
+	typ.Initialize("Dummy", "NONE")
 
 	var out io.Writer
 	out = ioutil.Discard
 
-	out, _ = os.Create("/tmp/WorkloadExecutor.log")
+	out, _ = os.Create("./WorkloadExecutor.log")
 	//ToDo does this need error handling
 	WorkloadLogger = log.New(out, "[Info]", log.Lshortfile)
 
 	WorkloadExec := NewWorkloadExecutor()
 	WorkloadExec.HostIP = GetLocalIP()
 	WorkloadExec.monMap = make(map[string](*TaskMon.TaskMon))
+	WorkloadExec.CustomExecutor = SE
 
 	dconfig := exec.DriverConfig{
 		BindingAddress: net.ParseIP(WorkloadExec.HostIP),

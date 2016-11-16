@@ -126,7 +126,7 @@ func (d *Dcontainer) GetStats() (typ.StatsInfo, error) {
 	return data, nil
 }
 
-func (d *Dcontainer) Wait() int {
+func (d *Dcontainer) Wait() int64 {
 	if d.ID == "" {
 		return -1
 	}

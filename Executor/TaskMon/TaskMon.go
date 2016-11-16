@@ -4,24 +4,24 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"strconv"
+
 	"strings"
 	"time"
 
 	typ "github.com/huawei-cloudfederation/mesos-go-stateful/common/types"
-	"github.com/huawei-cloudfederation/mesos-go-stateful/exec/docker"
+	"github.com/huawei-cloudfederation/mesos-go-stateful/Executor/docker"
 )
 
 //TaskMon This structure is used to implement a monitor thread/goroutine for a running task
 //This structure should be extended only if more functionality is required on the Monitoring functionality
 //A task objec is created within this and monitored hence forth
 type TaskMon struct {
-	P         *typ.Proc //The task structure that should be used
-	Pid       int       //The Pid of the running task
-	IP        string    //IP address the task instance should bind to
-	Port      int       //The port number of this task instance to be started
-	Ofile     io.Writer //Stdout log file to be re-directed to this io.writer
-	Efile     io.Writer //stderr of the task instance should be re-directed to this file
+	P         *typ.Task          //The task structure that should be used
+	Pid       int                //The Pid of the running task
+	IP        string             //IP address the task instance should bind to
+	Port      int                //The port number of this task instance to be started
+	Ofile     io.Writer          //Stdout log file to be re-directed to this io.writer
+	Efile     io.Writer          //stderr of the task instance should be re-directed to this file
 	MonChan   chan int
 	Container *docker.Dcontainer //A handle for the Container package
 	Image     string             //Name of the Image that should be pulled
@@ -33,7 +33,7 @@ type TaskMon struct {
 func NewTaskMon(tskName string, IP string, Port int, data string, L *log.Logger, Image string) *TaskMon {
 
 	var T TaskMon
-	var P *typ.Proc
+	var P *typ.Task
 
 	T.MonChan = make(chan int)
 	T.Port = Port
@@ -51,17 +51,19 @@ func NewTaskMon(tskName string, IP string, Port int, data string, L *log.Logger,
 		return nil
 	}
 
-	Cap, _ := strconv.Atoi(splitData[0])
 
+
+	/*
 	switch splitData[1] {
 	case "Master":
-		P = typ.NewProc(tskName, Cap, "M", "")
+		P = typ.NewT(tskName, Cap, "M", "")
 		T.L.Printf("created proc for new MASTER\n")
 		break
 	case "SlaveOf":
 		P = typ.NewProc(tskName, Cap, "S", splitData[2])
 		break
 	}
+	*/
 	T.P = P
 	//ToDo each instance should be started with its own dir and specified config file
 	//ToDo Stdout file to be tskname.stdout
@@ -76,9 +78,9 @@ func (T *TaskMon) launchWorkload(isSlave bool, IP string, port string) bool {
 
 	var err error
 	if isSlave {
-		err = T.Container.Run(T.P.ID, T.Image, []string{"server", fmt.Sprintf("--port %d", T.Port), fmt.Sprintf("--Slaveof %s %s", IP, port)}, int64(T.P.MemCap), T.P.ID+".log")
+		err = T.Container.Run(T.P.ID, T.Image, []string{"server", fmt.Sprintf("--port %d", T.Port), fmt.Sprintf("--Slaveof %s %s", IP, port)}, int64(T.P.Stats.Capacity.Mem), T.P.ID+".log")
 	} else {
-		err = T.Container.Run(T.P.ID, T.Image, []string{"server", fmt.Sprintf("--port %d", T.Port)}, int64(T.P.MemCap), T.P.ID+".log")
+		err = T.Container.Run(T.P.ID, T.Image, []string{"server", fmt.Sprintf("--port %d", T.Port)}, int64(T.P.Stats.Capacity.Mem), T.P.ID+".log")
 	}
 
 	if err != nil {
@@ -95,8 +97,6 @@ func (T *TaskMon) launchWorkload(isSlave bool, IP string, port string) bool {
 //UpdateStats Update the stats structure and flush it to the Store/DB
 func (T *TaskMon) UpdateStats() bool {
 
-	var workloadStats typ.Stats
-
 	data, err := T.Container.GetStats()
 
 	if err != nil {
@@ -104,16 +104,12 @@ func (T *TaskMon) UpdateStats() bool {
 		return false
 	}
 
-	workloadStats.NRxbytes = data.Network.RxBytes
-	workloadStats.CpuUsage = data.CStats.CpuUsage.TotalUsage
-	workloadStats.Mem = data.MStats.Usage
-	workloadStats.BlkIOstats = data.BlockIOStats.IOServiceBytesRecursive
+	//For now collect only two statistics
+	//TODO: Move the stats collected as TaskStats, to be supplied to Framework/Scheduler
 
-	errSync := T.P.SyncStats(workloadStats)
-	if !errSync {
-		T.L.Printf("Error syncing stats to store")
-		return false
-	}
+	T.P.Stats.Used.CPU = float64(data.CStats.SCpuUsage)
+	T.P.Stats.Used.Mem = float64(data.MStats.Usage)
+
 	return true
 }
 
@@ -139,10 +135,7 @@ func (T *TaskMon) StartMaster() bool {
 
 	T.Pid = 0
 	T.P.Pid = 0
-	T.P.Port = fmt.Sprintf("%d", T.Port)
-	T.P.IP = T.IP
 	T.P.State = "Running"
-	T.P.Sync()
 
 	return true
 }
@@ -165,8 +158,6 @@ func (T *TaskMon) StartSlave() bool {
 
 	T.Pid = 0
 	T.P.Pid = 0
-	T.P.Port = fmt.Sprintf("%d", T.Port)
-	T.P.IP = T.IP
 	T.P.State = "Running"
 
 	T.P.Sync()
@@ -190,7 +181,7 @@ func (T *TaskMon) Monitor() bool {
 			case <-T.MonChan:
 				//ToDo:update state if needed
 				//signal to stop monitoring this
-				T.L.Printf("Stopping TaskMon for %s %s", T.P.IP, T.P.Port)
+				//T.L.Printf("Stopping TaskMon for %s %s", T.P.IP, T.P.Port)
 				return false
 
 			case <-CheckMsgCh:
@@ -245,26 +236,9 @@ func (T *TaskMon) CheckMsg() {
 	//check message from scheduler
 	//currently we do it to see if scheduler asks us to quit
 
-	//ToDo better error handling needed
-	err := T.P.LoadMsg()
-	if !err {
-		T.L.Printf("Failed While Loading msg for workload %v from node %v", T.P.ID, T.P.Nodename)
-		return
-	}
+	//ToDo Re-implement CheckMsg
 
-	switch {
-	case T.P.Msg == "SHUTDOWN":
-		err = T.Stop()
-		if err {
 
-			T.L.Printf("failed to stop the server")
-		}
-		//in any case lets stop monitoring
-		T.MonChan <- 1
-		return
-	}
-	//Once you have read the message delete the message.
-	T.P.Msg = ""
-	T.P.SyncMsg()
+
 
 }
