@@ -11,4 +11,3 @@ const (
 	TASK_MSG_MAKEMASTER        //1
 	TASK_MSG_SLAVEOF
 )
-

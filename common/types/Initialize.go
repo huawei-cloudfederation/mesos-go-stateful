@@ -6,7 +6,6 @@ import (
 	"github.com/huawei-cloudfederation/mesos-go-stateful/common/logs"
 	"github.com/huawei-cloudfederation/mesos-go-stateful/common/store/etcd"
 	"github.com/huawei-cloudfederation/mesos-go-stateful/common/store/zookeeper"
-
 )
 
 //Initialize Initialize all the data strucutres in common package, should be called by the main program only and should be called only once per program
@@ -14,6 +13,7 @@ func Initialize(dbtype string, config string) (bool, error) {
 
 	//Initalize all the communication channels
 	OfferList = JobList.NewJobList()
+	TaskList = JobList.NewJobList()
 	Cchan = make(chan HttpToCR)
 	Mchan = make(chan *TaskUpdate) //Channel for Maintainer
 	Dchan = make(chan TaskMsg)     //Channel for Destroyer
@@ -22,7 +22,6 @@ func Initialize(dbtype string, config string) (bool, error) {
 
 	//Initalize the Internal in-memory storage
 	MemDb = NewInMem()
-
 
 	//Initalize the store db
 	switch dbtype {

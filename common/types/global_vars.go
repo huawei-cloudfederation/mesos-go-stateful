@@ -10,7 +10,8 @@ var (
 	Gdb   store.DB //Gdb Golabal variables related to db connection/instace
 	MemDb *InMem   //In memory store
 
-	OfferList *JobList.JobList  //list for having offer
+	OfferList *JobList.JobList  //list for having
+	TaskList  *JobList.JobList  //List for processing the Task updates from Master to maintainer
 	Cchan     chan HttpToCR     //Channel for Creator
 	Mchan     chan *TaskUpdate  //Channel for Maintainer
 	Dchan     chan TaskMsg      //Channel for Destroyer

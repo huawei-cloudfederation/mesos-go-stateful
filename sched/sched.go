@@ -7,8 +7,8 @@ import (
 
 	"github.com/huawei-cloudfederation/mesos-go-stateful/common/logs"
 	typ "github.com/huawei-cloudfederation/mesos-go-stateful/common/types"
-	"github.com/huawei-cloudfederation/mesos-go-stateful/sched/httplib"
 	"github.com/huawei-cloudfederation/mesos-go-stateful/sched/CMD"
+	"github.com/huawei-cloudfederation/mesos-go-stateful/sched/httplib"
 	"github.com/huawei-cloudfederation/mesos-go-stateful/sched/mesoslib"
 )
 

@@ -8,7 +8,7 @@ import (
 	"text/template"
 
 	"github.com/huawei-cloudfederation/mesos-go-stateful/common/logs"
-	typ "github.com/huawei-cloudfederation/mesos-go-stateful/common/types" 
+	typ "github.com/huawei-cloudfederation/mesos-go-stateful/common/types"
 )
 
 const ExecutorGo = `
@@ -138,7 +138,7 @@ func main() {
 
 	sched.Register(New{{.Name}}Scheduler())
 
-	logs.Printf("Scheduler terminated")
+	logs.Printf("Starting Scheduler")
 
 	sched.Init(*ConfigFileName)
 
@@ -211,6 +211,7 @@ func main() {
 	}
 	f.Close()
 
+	logs.Printf("Generating Executor.go...")
 	tE := template.Must(template.New("ExecutorGO").Parse(ExecutorGo))
 
 	// Execute the template for the scheduler

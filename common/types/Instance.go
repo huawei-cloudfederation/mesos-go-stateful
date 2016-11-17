@@ -33,7 +33,7 @@ type Instance struct {
 // Returns nil if the instance already exists
 func NewInstance(Name string, Masters int, Slaves int, S WLSpec) *Instance {
 
-	p := &Instance{Name: Name, ExpMasters: Masters, ExpSlaves: Slaves, Spec: S, DValue:2}
+	p := &Instance{Name: Name, ExpMasters: Masters, ExpSlaves: Slaves, Spec: S, DValue: 2}
 	return p
 }
 
@@ -216,9 +216,9 @@ func (I *Instance) LoadProcs() bool {
 
 //Instance_Json  Filtered elementes of an Instnace that will be sent as an HTTP response
 type Instance_Json struct {
-	Name     string
-	Master   *TaskStats
-	Slaves   []*TaskStats
+	Name   string
+	Master *TaskStats
+	Slaves []*TaskStats
 }
 
 //ToJson Marshall the Instane to a JSON

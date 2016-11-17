@@ -11,12 +11,10 @@ import (
 	exec "github.com/mesos/mesos-go/executor"
 	mesos "github.com/mesos/mesos-go/mesosproto"
 
+	"github.com/huawei-cloudfederation/mesos-go-stateful/Executor/TaskMon"
 	"github.com/huawei-cloudfederation/mesos-go-stateful/common/logs"
 	typ "github.com/huawei-cloudfederation/mesos-go-stateful/common/types"
-	"github.com/huawei-cloudfederation/mesos-go-stateful/Executor/TaskMon"
 )
-
-
 
 var Image = flag.String("Image", "image-name", "Image of the worklaod Proc to be downloaded")
 
@@ -26,9 +24,9 @@ var WorkloadLogger *log.Logger
 //WorkloadExecutor Basic strucutre for the executor
 type WorkloadExecutor struct {
 	CustomExecutor StatefulExecutor
-	tasksLaunched int
-	HostIP        string
-	monMap        map[string](*TaskMon.TaskMon)
+	tasksLaunched  int
+	HostIP         string
+	monMap         map[string](*TaskMon.TaskMon)
 }
 
 //GetLocalIP A function to look up the exposed local IP such that the executor can bind to
@@ -120,7 +118,7 @@ func (exec *WorkloadExecutor) LaunchTask(driver exec.ExecutorDriver, taskInfo *m
 		exitState := mesos.TaskState_TASK_FINISHED.Enum()
 
 		exitErr := M.Container.Wait() //TODO: Collect the return value of the process and send appropriate TaskUpdate eg:TaskFinished only on clean shutdown others will get TaskFailed
-		if exitErr != 0  {
+		if exitErr != 0 {
 			//If the workload-server proc finished either with a non-zero or its not suppose to die then mark it as Task filed
 			exitState = mesos.TaskState_TASK_FAILED.Enum()
 			//Signal the monitoring thread to stop monitoring from now on

@@ -15,7 +15,7 @@ import (
 //WorkloadScheduler scheudler struct
 type WorkloadScheduler struct {
 	executor *mesos.ExecutorInfo
-	driver sched.SchedulerDriver
+	driver   sched.SchedulerDriver
 }
 
 //NewWorkloadScheduler Constructor
@@ -61,7 +61,7 @@ func (S *WorkloadScheduler) ResourceOffers(driver sched.SchedulerDriver, offers 
 		for i, offer := range offers {
 			ids[i] = offer.Id
 		}
-		driver.LaunchTasks(ids, []*mesos.TaskInfo{}, &mesos.Filters{RefuseSeconds:&RSeconds})
+		driver.LaunchTasks(ids, []*mesos.TaskInfo{}, &mesos.Filters{RefuseSeconds: &RSeconds})
 		logs.Printf("DECLINE OFFERS for 1 Next Hour")
 		return
 	}
@@ -96,11 +96,11 @@ func (S *WorkloadScheduler) ResourceOffers(driver sched.SchedulerDriver, offers 
 			disk += res.GetScalar().GetValue()
 		}
 
-		logs.Printf("Received Offer with CPU=%v MEM=%v OfferID=%v", cpus, mems, offer.Id.GetValue())
+		logs.Printf("Received Offer with CPU=%v MEM=%v OfferID=%v Slave=%v", cpus, mems, offer.Id.GetValue(), offer.SlaveId.GetValue())
 		var tasks []*mesos.TaskInfo
 
 		//Loop through the tasks
-		for tskEle := typ.OfferList.Front();  tskEle != nil; {
+		for tskEle := typ.OfferList.Front(); tskEle != nil; {
 
 			tsk := tskEle.Value.(typ.Offer)
 			tskCPUFloat := tsk.Spec.CPU
@@ -121,8 +121,8 @@ func (S *WorkloadScheduler) ResourceOffers(driver sched.SchedulerDriver, offers 
 						util.NewScalarResource("mem", tskMemFloat),
 						util.NewScalarResource("disk", tskDiskFloat),
 					},
-					Data: tmpData,
-					Command: &mesos.CommandInfo{Arguments:tsk.CmdInfo},
+					Data:    tmpData,
+					Command: &mesos.CommandInfo{Arguments: tsk.CmdInfo},
 				}
 				mems -= tskMemFloat
 				cpus -= tskCPUFloat
@@ -157,6 +157,7 @@ func (S *WorkloadScheduler) StatusUpdate(driver sched.SchedulerDriver, status *m
 
 	//Send it across to the channel to maintainer
 	//typ.Mchan <- &t
+	typ.TaskList.EnQ(ts)
 }
 
 //OfferRescinded Not implemented
@@ -184,7 +185,7 @@ func (S *WorkloadScheduler) Error(_ sched.SchedulerDriver, err string) {
 	logs.Printf("Scheduler received error:%v", err)
 }
 
-func (S *WorkloadScheduler) JobListisQueued () bool {
+func (S *WorkloadScheduler) JobListisQueued() bool {
 	logs.Printf("OfferLIST Queued")
 	_, err := S.driver.ReviveOffers()
 	if err != nil {
@@ -194,7 +195,7 @@ func (S *WorkloadScheduler) JobListisQueued () bool {
 	return true
 }
 
-func (S *WorkloadScheduler) JobListisEmpty () bool {
+func (S *WorkloadScheduler) JobListisEmpty() bool {
 
 	logs.Printf("OfferLIST is Empty")
 	return true

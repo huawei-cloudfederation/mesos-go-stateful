@@ -8,20 +8,20 @@ import (
 	"strings"
 	"time"
 
-	typ "github.com/huawei-cloudfederation/mesos-go-stateful/common/types"
 	"github.com/huawei-cloudfederation/mesos-go-stateful/Executor/docker"
+	typ "github.com/huawei-cloudfederation/mesos-go-stateful/common/types"
 )
 
 //TaskMon This structure is used to implement a monitor thread/goroutine for a running task
 //This structure should be extended only if more functionality is required on the Monitoring functionality
 //A task objec is created within this and monitored hence forth
 type TaskMon struct {
-	P         *typ.Task          //The task structure that should be used
-	Pid       int                //The Pid of the running task
-	IP        string             //IP address the task instance should bind to
-	Port      int                //The port number of this task instance to be started
-	Ofile     io.Writer          //Stdout log file to be re-directed to this io.writer
-	Efile     io.Writer          //stderr of the task instance should be re-directed to this file
+	P         *typ.Task //The task structure that should be used
+	Pid       int       //The Pid of the running task
+	IP        string    //IP address the task instance should bind to
+	Port      int       //The port number of this task instance to be started
+	Ofile     io.Writer //Stdout log file to be re-directed to this io.writer
+	Efile     io.Writer //stderr of the task instance should be re-directed to this file
 	MonChan   chan int
 	Container *docker.Dcontainer //A handle for the Container package
 	Image     string             //Name of the Image that should be pulled
@@ -51,18 +51,16 @@ func NewTaskMon(tskName string, IP string, Port int, data string, L *log.Logger,
 		return nil
 	}
 
-
-
 	/*
-	switch splitData[1] {
-	case "Master":
-		P = typ.NewT(tskName, Cap, "M", "")
-		T.L.Printf("created proc for new MASTER\n")
-		break
-	case "SlaveOf":
-		P = typ.NewProc(tskName, Cap, "S", splitData[2])
-		break
-	}
+		switch splitData[1] {
+		case "Master":
+			P = typ.NewT(tskName, Cap, "M", "")
+			T.L.Printf("created proc for new MASTER\n")
+			break
+		case "SlaveOf":
+			P = typ.NewProc(tskName, Cap, "S", splitData[2])
+			break
+		}
 	*/
 	T.P = P
 	//ToDo each instance should be started with its own dir and specified config file
@@ -237,8 +235,5 @@ func (T *TaskMon) CheckMsg() {
 	//currently we do it to see if scheduler asks us to quit
 
 	//ToDo Re-implement CheckMsg
-
-
-
 
 }

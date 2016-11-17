@@ -6,8 +6,8 @@ import (
 
 //An interface for Custom Executor
 type StatefulExecutor interface {
-	Config (*typ.Task)
-	TaskStarted (*typ.Task)
+	Config(*typ.Task)
+	TaskStarted(*typ.Task)
 	Cleanup(*typ.Task)
 	UpdateConfig(*typ.Task)
 }
