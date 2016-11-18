@@ -62,6 +62,13 @@ func NewTaskMon(tskName string, IP string, Port int, data string, L *log.Logger,
 			break
 		}
 	*/
+
+	var WL typ.WLSpec
+	WL.CPU = 1.0
+	WL.Mem = 100.0
+	WL.Disk = 1.0
+	WL.Image = Image
+	P = typ.NewTask(tskName, WL, "M", "")
 	T.P = P
 	//ToDo each instance should be started with its own dir and specified config file
 	//ToDo Stdout file to be tskname.stdout
@@ -76,9 +83,9 @@ func (T *TaskMon) launchWorkload(isSlave bool, IP string, port string) bool {
 
 	var err error
 	if isSlave {
-		err = T.Container.Run(T.P.ID, T.Image, []string{"server", fmt.Sprintf("--port %d", T.Port), fmt.Sprintf("--Slaveof %s %s", IP, port)}, int64(T.P.Stats.Capacity.Mem), T.P.ID+".log")
+		err = T.Container.Run(T.P.ID, T.Image, []string{fmt.Sprintf("--port %d", T.Port)}, int64(T.P.Stats.Capacity.Mem), T.P.ID+".log")
 	} else {
-		err = T.Container.Run(T.P.ID, T.Image, []string{"server", fmt.Sprintf("--port %d", T.Port)}, int64(T.P.Stats.Capacity.Mem), T.P.ID+".log")
+		err = T.Container.Run(T.P.ID, T.Image, []string{fmt.Sprintf("--port %d", T.Port)}, int64(T.P.Stats.Capacity.Mem), T.P.ID+".log")
 	}
 
 	if err != nil {

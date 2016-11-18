@@ -4,6 +4,7 @@ import (
 	"github.com/huawei-cloudfederation/mesos-go-stateful/common/id"
 	"github.com/huawei-cloudfederation/mesos-go-stateful/common/logs"
 	typ "github.com/huawei-cloudfederation/mesos-go-stateful/common/types"
+	"time"
 )
 
 type CMD struct {
@@ -25,7 +26,7 @@ func (C *CMD) Run() {
 	go C.Creator()
 	go C.Maintainer()
 	go C.Destroy()
-	//go typ.OfferList.EventHandler(JobListisQueued, JobListisEmpty, time.Second)
+	go typ.TaskList.EventHandler(C.TaskListQueued, C.TaskListEmpty, time.Second)
 }
 
 func (C *CMD) Creator() {
@@ -67,15 +68,25 @@ func (C *CMD) Creator() {
 				//Just create Master instance offer and get out
 				CmdInfo = C.CB.Config(I, true)
 				typ.MemDb.Add(I.Name, I)
-				typ.OfferList.EnQ(typ.NewOffer(IRequest.Name, IRequest.Name+"-"+id.NewUIIDstr(), CmdInfo, I.DValue, IRequest.Spec))
+				typ.OfferList.EnQ(typ.NewOffer(IRequest.Name, IRequest.Name+"::"+id.NewUIIDstr(), CmdInfo, I.DValue, IRequest.Spec))
 			}
 
 		}
 	}
 }
 
-func (C *CMD) TaskIsQueued() bool {
+func (C *CMD) TaskListQueued() bool {
 
+	logs.Printf("TaskList is Queued")
+	go func() {
+		C.TaskCh <- true
+	}()
+	return true
+}
+
+func (C *CMD) TaskListEmpty() bool {
+
+	logs.Printf("TaskList is Empty")
 	return true
 }
 
@@ -94,12 +105,14 @@ func (C *CMD) Maintainer() {
 				iname, id := typ.TaskSplitNames(tskUpdate.Name)
 				if !typ.MemDb.IsValid(iname) {
 					logs.Printf("MAINTAINOR: Recived a task update of a Non-existing Instnace %v. Ignoring...", iname)
+					typ.TaskList.Delete(tEle)
 					continue
 				}
 				I := typ.MemDb.Get(iname)
 				tsk, isvalid := I.Procs[id]
 				if isvalid == false {
 					logs.Printf("MAINTAINOR: Recived an Update of Non-Existant TASK Instance = %v Task = %v", iname, id)
+					typ.TaskList.Delete(tEle)
 					continue
 				}
 				switch tskUpdate.State {

@@ -41,10 +41,10 @@ func serveExecutorArtifact(path string, IP, Port string) (*string, string) {
 
 func prepareExecutorInfo(IP, Port, executorPath, Image, DbType, DbEndPoint string) *mesos.ExecutorInfo {
 	executorUris := []*mesos.CommandInfo_URI{}
-	uri, executorCmd := serveExecutorArtifact(executorPa	th, IP, Port)
+	uri, executorCmd := serveExecutorArtifact(executorPath, IP, Port)
 	executorUris = append(executorUris, &mesos.CommandInfo_URI{Value: uri, Executable: proto.Bool(true)})
 
-	executorCommand := fmt.Sprintf("./%s -logtostderr=true -DbType=%s -DbEndPoint=%s -Image=%s", executorCmd, DbType, DbEndPoint, Image)
+	executorCommand := fmt.Sprintf("./%s -logtostderr=true -Image=%s", executorCmd, Image)
 
 	/* If possible override the artifact hosting IP to below env variable */
 

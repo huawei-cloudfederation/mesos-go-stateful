@@ -140,7 +140,7 @@ func (d *Dcontainer) Wait() int64 {
 		}
 	}()
 	retVal, _ := d.Cli.ContainerWait(d.Ctx, d.ID)
-	return retVal
+	return int64(retVal)
 }
 
 func (d *Dcontainer) Close(HijackRes bool) {
