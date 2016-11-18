@@ -108,6 +108,9 @@ func (S *WorkloadScheduler) ResourceOffers(driver sched.SchedulerDriver, offers 
 			tskDiskFloat := tsk.Spec.Disk
 
 			var tmpData []byte
+			for _, str := range(tsk.CmdInfo) {
+				tmpData =  append(tmpData, []byte(str)...)
+			}
 
 			if cpus >= tskCPUFloat && mems >= tskMemFloat && disk >= tskDiskFloat && typ.Agents.Canfit(offer.SlaveId.GetValue(), tsk.Name, tsk.DValue) {
 				tskID := &mesos.TaskID{Value: proto.String(tsk.Taskname)}
@@ -122,7 +125,6 @@ func (S *WorkloadScheduler) ResourceOffers(driver sched.SchedulerDriver, offers 
 						util.NewScalarResource("disk", tskDiskFloat),
 					},
 					Data:    tmpData,
-					Command: &mesos.CommandInfo{Arguments: tsk.CmdInfo},
 				}
 				mems -= tskMemFloat
 				cpus -= tskCPUFloat

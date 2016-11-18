@@ -129,7 +129,7 @@ func (C *CMD) Maintainer() {
 						}
 						logs.Printf("MAINTAINOR: TaskLost Call Back Invocation Error:%v", err)
 					}
-					
+
 				case "TASK_ERROR", "TASK_FAILED", "TASK_KILLED", "TASK_LOST":
 
 					if tsk.Type == "M" {
